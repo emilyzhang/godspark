@@ -397,13 +397,27 @@ body.dragging-card .slot.open {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.8rem;
+  flex-direction: column;
+  gap: 0.9rem;
   min-height: 10rem;
-  padding: 0.9rem;
+  padding: 0.9rem 0.9rem 1.1rem;
   background: rgba(29, 23, 38, 0.75);
   border: 1px solid var(--line);
   border-radius: 10px;
+}
+.tray-group-label {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  font-weight: normal;
+  font-size: 0.6rem;
+  letter-spacing: 0.32em;
+  color: var(--ink-dim);
+  margin-bottom: 0.4rem;
+}
+.tray-group-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
 }
 .tray-empty { color: var(--ink-dim); font-style: italic; align-self: center; margin: 0 auto; }
 

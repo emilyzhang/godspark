@@ -29,7 +29,10 @@ let grimoire = []; // [{ recipeId, verb, name, text }]
 
 // ---- listeners the UI hooks into -------------------------------------------
 
-const listeners = { change: [], toast: [], autopause: [], ending: [], newrun: [] };
+// "change" = structure changed, rebuild the view.
+// "tick" = only timers moved; update countdowns in place (rebuilding every
+// tick destroys the element under the cursor and makes hover states flicker).
+const listeners = { change: [], tick: [], toast: [], autopause: [], ending: [], newrun: [] };
 function on(event, fn) { listeners[event].push(fn); }
 function emit(event, arg) { listeners[event].forEach((fn) => fn(arg)); }
 
@@ -332,13 +335,14 @@ function tick() {
   if (state.paused || state.ended) return;
   const dt = TICK_MS / 1000;
   state.elapsed += dt;
-  let changed = false;
+  let timersMoved = false;
+  let structural = false;
 
   for (const [verbId, verb] of Object.entries(state.verbs)) {
     if (verb.running) {
       verb.running.remaining -= dt;
-      changed = true;
-      if (verb.running.remaining <= 0) finishVerb(verbId);
+      timersMoved = true;
+      if (verb.running.remaining <= 0) finishVerb(verbId); // emits its own change
     }
   }
 
@@ -346,9 +350,10 @@ function tick() {
   for (const card of [...state.cards]) {
     if (card.decay !== null && !card.heldBy) {
       card.decay -= dt;
-      changed = true;
+      timersMoved = true;
       if (card.decay <= 0) {
         removeCard(card.uid);
+        structural = true;
         const expireText = defOf(card).expireText || `${defOf(card).name} is gone.`;
         emit("toast", expireText);
       }
@@ -356,7 +361,8 @@ function tick() {
   }
 
   checkEvents();
-  if (changed) emit("change");
+  if (structural) emit("change");
+  else if (timersMoved) emit("tick");
 }
 
 function setPaused(value) {

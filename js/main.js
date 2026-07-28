@@ -5,6 +5,7 @@
 (function init() {
   // engine -> ui
   on("change", render);
+  on("tick", renderTick);
   on("toast", showToast);
   on("autopause", (verbId) => {
     // A finished action gets the bright chime; omens and menaces toll low.

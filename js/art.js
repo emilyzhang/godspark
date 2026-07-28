@@ -40,7 +40,8 @@ function svgEl(tag, attrs) {
 
 const ICONS = {
   flame: '<path d="M12 3.5c1 3 4.5 4.6 4.5 8.3a4.5 4.5 0 1 1-9 0c0-2.4 1.4-3.8 2.6-5.2.9-1 1.6-2 1.9-3.1Z"/><path d="M12 19.5a2.6 2.6 0 0 1-2.6-2.6c0-1.4 1.5-2.3 2.6-3.6 1.1 1.3 2.6 2.2 2.6 3.6a2.6 2.6 0 0 1-2.6 2.6Z" fill="currentColor" stroke="none" opacity="0.5"/>',
-  crescent: '<path d="M14.5 3.5a9 9 0 1 0 6 12.9 8.2 8.2 0 0 1-6-12.9Z"/>',
+  // the star in the crescent's open side balances its one-sided mass
+  crescent: '<path d="M12.2 3.6a8.7 8.7 0 1 0 6.2 13.3A8 8 0 0 1 12.2 3.6Z"/><path d="M17.4 6.2l.6 2.1 2.1.6-2.1.6-.6 2.1-.6-2.1-2.1-.6 2.1-.6Z" fill="currentColor" stroke="none"/>',
   crown: '<path d="M4.5 16.5 3.5 8l4.8 3.2L12 5.5l3.7 5.7L20.5 8l-1 8.5Z"/><path d="M5.5 19.5h13"/>',
   coin: '<circle cx="12" cy="12" r="7.2"/><circle cx="12" cy="12" r="3.8"/><path d="M12 4.8v1.8M12 17.4v1.8M4.8 12h1.8M17.4 12h1.8" opacity="0.7"/>',
   heart: '<path d="M12 19.5C6 15 4.5 11.5 6.3 8.9c1.6-2.3 4.4-1.9 5.7.3 1.3-2.2 4.1-2.6 5.7-.3 1.8 2.6.3 6.1-5.7 10.6Z"/>',
@@ -71,7 +72,8 @@ const ICONS = {
   asterism: '<path d="M12 3.5l1 3 3 1-3 1-1 3-1-3-3-1 3-1Z" fill="currentColor" stroke="none"/><path d="M6.2 13l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8Z" fill="currentColor" stroke="none"/><path d="M17.8 13l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8Z" fill="currentColor" stroke="none"/>',
   scales: '<path d="M4.5 6.5h15M12 4.2V19M8.5 19.5h7"/><path d="M7 6.5 4.4 12.4M7 6.5l2.6 5.9M4.1 12.4a2.9 2.9 0 0 0 5.8 0Z"/><path d="m17 6.5-2.6 5.9M17 6.5l2.6 5.9M14.1 12.4a2.9 2.9 0 0 0 5.8 0Z"/>',
   quill: '<path d="M19.5 4c-5.5.6-9.8 3.6-12.2 8.6L6 18l5.4-1.3C16.4 14.3 19 9.5 19.5 4Z"/><path d="M6.8 17.2 14.5 9" opacity="0.7"/>',
-  hammer: '<path d="m13.2 10.8 6.6 6.6-2.4 2.4-6.6-6.6"/><path d="M4.2 5h8.6v6H8.2A4 4 0 0 1 4.2 7Z"/>',
+  // an upright mallet: symmetric, so it sits square in its circle
+  hammer: '<path d="M6 4.5h12a1 1 0 0 1 1 1v3.4a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5.5a1 1 0 0 1 1-1Z"/><path d="M10.9 9.9h2.2l-.4 10.6h-1.4Z"/>',
   pause: '<path d="M8.5 5v14M15.5 5v14"/>',
   play: '<path d="M8 5.2 18.8 12 8 18.8Z" fill="currentColor" stroke="none"/>',
   bell: '<path d="M12 3.5a5.5 5.5 0 0 1 5.5 5.5c0 3.6.8 5.4 1.8 6.5H4.7c1-1.1 1.8-2.9 1.8-6.5A5.5 5.5 0 0 1 12 3.5Z"/><path d="M10 18.8a2.1 2.1 0 0 0 4 0"/>',

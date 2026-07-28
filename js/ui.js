@@ -138,6 +138,7 @@ function renderVerbRow() {
 
     const tile = document.createElement("button");
     tile.className = "verb-tile";
+    tile.dataset.verb = verbId;
     if (verbId === selectedVerbId) tile.classList.add("selected");
     if (verb.complete) tile.classList.add("complete");
 
@@ -354,6 +355,28 @@ function renderVerbPanel() {
 
 // ---- tray ------------------------------------------------------------------
 
+// Possessions shelve themselves by kind, menaces last.
+const TRAY_GROUPS = [
+  { key: "ember", label: "The Ember" },
+  { key: "means", label: "Means" },
+  { key: "lore", label: "Lore & Letters" },
+  { key: "stories", label: "Stories & Memories" },
+  { key: "company", label: "Company" },
+  { key: "curiosities", label: "Curiosities" },
+  { key: "burdens", label: "Burdens" },
+];
+
+function trayGroupOf(def) {
+  const a = def.aspects;
+  if (a.spark) return "ember";
+  if (def.menace) return "burdens";
+  if (a.lore || a.text || a.tome || a.annotation) return "lore";
+  if (a.story || a.godmemory) return "stories";
+  if (a.listener || a.devotee || a.widow || a.hollows || a.inquisitor) return "company";
+  if (a.funds || a.vigor || a.clarity || a.fervor || a.wonder || a.soul) return "means";
+  return "curiosities";
+}
+
 function renderTray() {
   const tray = $("#card-tray");
   tray.innerHTML = "";
@@ -365,7 +388,7 @@ function renderTray() {
     tray.appendChild(empty);
     return;
   }
-  // stable, grouped display: sort by definition id then uid
+  // stable display: sort by definition id then uid
   cards.sort((a, b) => a.defId.localeCompare(b.defId) || a.uid - b.uid);
 
   // When a verb lies open and idle, light up the cards that would matter to it.
@@ -373,13 +396,32 @@ function renderTray() {
     && !verbState(selectedVerbId).running
     && !verbState(selectedVerbId).complete;
 
+  const grouped = {};
   for (const card of cards) {
-    const el = cardEl(card);
-    if (verbOpen) {
-      if (cardChangesOutcome(selectedVerbId, card)) el.classList.add("useful");
-      else el.classList.add("inert");
+    (grouped[trayGroupOf(CARD_DEFS[card.defId])] ||= []).push(card);
+  }
+
+  for (const group of TRAY_GROUPS) {
+    const members = grouped[group.key];
+    if (!members) continue;
+    const section = document.createElement("div");
+    section.className = "tray-group";
+    const label = document.createElement("h3");
+    label.className = "tray-group-label";
+    label.textContent = group.label;
+    section.appendChild(label);
+    const row = document.createElement("div");
+    row.className = "tray-group-cards";
+    for (const card of members) {
+      const el = cardEl(card);
+      if (verbOpen) {
+        if (cardChangesOutcome(selectedVerbId, card)) el.classList.add("useful");
+        else el.classList.add("inert");
+      }
+      row.appendChild(el);
     }
-    tray.appendChild(el);
+    section.appendChild(row);
+    tray.appendChild(section);
   }
 }
 
@@ -492,4 +534,32 @@ function render() {
   renderTray();
   renderGrimoire();
   renderPauseState();
+}
+
+// Timers moved but nothing structural changed: update countdowns in place,
+// leaving the DOM (and whatever the cursor is hovering) untouched.
+function renderTick() {
+  for (const [verbId, verb] of Object.entries(state.verbs)) {
+    if (!verb.running) continue;
+    const recipe = RECIPES.find((r) => r.id === verb.running.recipeId);
+    const tile = document.querySelector(`.verb-tile[data-verb="${verbId}"]`);
+    if (tile) {
+      const status = tile.querySelector(".verb-status");
+      if (status) status.textContent = `${recipe.name} — ${Math.ceil(verb.running.remaining)}s`;
+      const fill = tile.querySelector(".verb-progress-fill");
+      if (fill) fill.style.width = `${(1 - verb.running.remaining / verb.running.total) * 100}%`;
+    }
+    if (verbId === selectedVerbId) {
+      const label = document.querySelector("#verb-panel .running-label");
+      if (label) label.textContent = `${recipe.name} — ${Math.ceil(verb.running.remaining)}s remaining…`;
+    }
+  }
+  for (const card of trayCards()) {
+    if (card.decay === null) continue;
+    const decay = document.querySelector(`.card[data-uid="${card.uid}"] .card-decay`);
+    if (decay) {
+      decay.textContent = `${Math.ceil(card.decay)}s`;
+      decay.classList.toggle("urgent", card.decay < 30);
+    }
+  }
 }
