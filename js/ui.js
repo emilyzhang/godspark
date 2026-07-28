@@ -20,7 +20,8 @@ function aspectChips(aspects) {
     chip.className = "chip";
     chip.style.borderColor = info.color;
     chip.style.color = info.color;
-    chip.textContent = `${info.icon} ${info.label}${n > 1 ? " " + n : ""}`;
+    chip.appendChild(iconEl(info.icon));
+    chip.appendChild(document.createTextNode(`${info.label}${n > 1 ? " " + n : ""}`));
     wrap.appendChild(chip);
   }
   return wrap;
@@ -36,7 +37,13 @@ function aspectGems(aspects) {
     const gem = document.createElement("span");
     gem.className = "gem";
     gem.style.color = info.color;
-    gem.textContent = info.icon + (n > 1 ? n : "");
+    gem.appendChild(iconEl(info.icon));
+    if (n > 1) {
+      const count = document.createElement("span");
+      count.className = "gem-n";
+      count.textContent = n;
+      gem.appendChild(count);
+    }
     gem.title = `${info.label}${n > 1 ? " " + n : ""}`;
     row.appendChild(gem);
   }
@@ -68,7 +75,7 @@ function cardEl(card, { draggable = true } = {}) {
   art.appendChild(cardSigil(card.defId, dominantAspectColor(def)));
   const icon = document.createElement("div");
   icon.className = "card-icon";
-  icon.textContent = def.icon;
+  icon.appendChild(iconEl(def.icon));
   art.appendChild(icon);
 
   const name = document.createElement("div");
@@ -136,7 +143,7 @@ function renderVerbRow() {
 
     const icon = document.createElement("div");
     icon.className = "verb-icon";
-    icon.textContent = def.icon;
+    icon.appendChild(iconEl(def.icon));
     const name = document.createElement("div");
     name.className = "verb-name";
     name.textContent = def.name;
@@ -156,7 +163,7 @@ function renderVerbRow() {
       bar.appendChild(fill);
       tile.appendChild(bar);
     } else if (verb.complete) {
-      status.textContent = "✦ finished — click to see";
+      status.textContent = "finished — click to see";
     } else {
       status.textContent = "idle";
     }
@@ -222,7 +229,8 @@ function knownWorkingsEl(verbId) {
   const wrap = document.createElement("div");
   wrap.className = "known-workings";
   const label = document.createElement("h4");
-  label.textContent = "❦ workings you know";
+  label.appendChild(iconEl("leaf"));
+  label.appendChild(document.createTextNode("workings you know"));
   wrap.appendChild(label);
 
   for (const recipe of known) {
@@ -254,7 +262,8 @@ function renderVerbPanel() {
   const head = document.createElement("div");
   head.className = "panel-head";
   const title = document.createElement("h3");
-  title.textContent = `${def.icon} ${def.name}`;
+  title.appendChild(iconEl(def.icon));
+  title.appendChild(document.createTextNode(def.name));
   const desc = document.createElement("p");
   desc.className = "verb-desc";
   desc.textContent = def.desc;
@@ -282,7 +291,8 @@ function renderVerbPanel() {
       for (const defId of verb.complete.producedDefIds) {
         const ghost = document.createElement("span");
         ghost.className = "gained-card";
-        ghost.textContent = `${CARD_DEFS[defId].icon} ${CARD_DEFS[defId].name}`;
+        ghost.appendChild(iconEl(CARD_DEFS[defId].icon));
+        ghost.appendChild(document.createTextNode(CARD_DEFS[defId].name));
         gained.appendChild(ghost);
       }
       result.appendChild(gained);
@@ -389,7 +399,8 @@ function renderGrimoire() {
   for (const entry of grimoire) (byVerb[entry.verb] ||= []).push(entry);
   for (const [verbId, entries] of Object.entries(byVerb)) {
     const h = document.createElement("h3");
-    h.textContent = `${VERB_DEFS[verbId].icon} ${VERB_DEFS[verbId].name.toUpperCase()}`;
+    h.appendChild(iconEl(VERB_DEFS[verbId].icon));
+    h.appendChild(document.createTextNode(VERB_DEFS[verbId].name.toUpperCase()));
     container.appendChild(h);
     for (const entry of entries) {
       const div = document.createElement("div");
@@ -425,10 +436,16 @@ function showToast(message) {
   }, kind ? 9000 : 6000);
 }
 
+function buttonContent(btn, iconName, label) {
+  btn.innerHTML = "";
+  btn.appendChild(iconEl(iconName));
+  if (label) btn.appendChild(document.createTextNode(label));
+}
+
 function renderPauseState() {
   $("#paused-banner").classList.toggle("hidden", !state.paused || !!state.ended);
-  $("#btn-pause").textContent = state.paused ? "▶ Resume" : "⏸ Pause";
-  $("#btn-mute").textContent = state.muted ? "🔕" : "🔔";
+  buttonContent($("#btn-pause"), state.paused ? "play" : "pause", state.paused ? "Resume" : "Pause");
+  buttonContent($("#btn-mute"), state.muted ? "bellOff" : "bell", "");
 }
 
 function showEnding(kind) {

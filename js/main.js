@@ -23,6 +23,8 @@
   on("newrun", showPrologue); // every new story opens at the graveside
 
   // header controls
+  buttonContent(document.querySelector("#btn-grimoire"), "book", "Grimoire");
+  buttonContent(document.querySelector("#btn-restart"), "restart", "Begin Again");
   document.querySelector("#btn-pause").addEventListener("click", () => {
     if (!state.ended) setPaused(!state.paused);
   });

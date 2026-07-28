@@ -26,6 +26,18 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* the hand-drawn icon set: sized by context, inked by currentColor */
+.icon {
+  width: 1em;
+  height: 1em;
+  display: inline-block;
+  vertical-align: -0.14em;
+  flex: none;
+}
+button .icon { margin-right: 0.4em; vertical-align: -0.16em; }
+#btn-mute .icon { margin-right: 0; }
+.chip .icon { width: 0.85em; height: 0.85em; margin-right: 0.28em; vertical-align: -0.1em; }
+
 body {
   background:
     radial-gradient(ellipse 120% 60% at 50% -10%, #2b2140 0%, transparent 60%),
@@ -144,15 +156,17 @@ body {
   opacity: 0.85;
 }
 
+/* buttons are engraved plaques, like everything else in this cabinet */
 button {
-  font-family: var(--font-ui);
+  font-family: var(--font-display);
   background: var(--bg-raised);
   color: var(--ink);
   border: 1px solid var(--line);
   border-radius: 4px;
-  padding: 0.4rem 0.9rem;
+  padding: 0.45rem 0.95rem;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.76rem;
+  letter-spacing: 0.1em;
   transition: border-color 0.2s, color 0.2s;
 }
 button:hover { border-color: var(--gold); }
@@ -162,9 +176,9 @@ button.primary {
   background: linear-gradient(180deg, #3a2c1c, #2a2015);
   border-color: var(--gold);
   color: var(--gold-bright);
-  font-size: 1rem;
-  padding: 0.5rem 1.6rem;
-  letter-spacing: 0.08em;
+  font-size: 0.88rem;
+  padding: 0.55rem 1.6rem;
+  letter-spacing: 0.14em;
   box-shadow: 0 0 12px rgba(201, 168, 76, 0.12);
 }
 button.primary:hover { box-shadow: 0 0 18px rgba(201, 168, 76, 0.3); }
@@ -245,10 +259,13 @@ main { max-width: 62rem; margin: 0 auto; padding: 1.5rem; }
   to   { box-shadow: 0 0 16px rgba(226, 112, 58, 0.75); }
 }
 .verb-icon {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   width: 2.9rem;
   height: 2.9rem;
-  line-height: 2.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold);
   margin: 0 auto;
   border: 1px solid var(--line);
   border-radius: 50%;
@@ -284,6 +301,7 @@ main { max-width: 62rem; margin: 0 auto; padding: 1.5rem; }
   margin-bottom: 1.5rem;
 }
 .panel-head h3 { font-family: var(--font-display); color: var(--gold); letter-spacing: 0.15em; font-weight: normal; font-size: 1.05rem; }
+.panel-head h3 .icon, #grimoire-entries h3 .icon, .known-workings h4 .icon { margin-right: 0.45em; }
 .verb-desc { color: var(--ink-dim); font-style: italic; font-size: 0.9rem; margin-top: 0.15rem; }
 
 .slot-row { display: flex; gap: 0.9rem; margin: 1rem 0; flex-wrap: wrap; }
@@ -361,7 +379,7 @@ body.dragging-card .slot.open {
   flex-wrap: wrap;
   padding: 0.18rem 0;
 }
-.working-name { font-family: var(--font-ui); font-size: 0.82rem; color: var(--ink); min-width: 13rem; }
+.working-name { font-family: var(--font-body); font-size: 0.84rem; color: var(--ink); min-width: 13rem; }
 
 /* ---- card tray ---- */
 
@@ -502,7 +520,8 @@ body.dragging-card .slot.open {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 1.7rem;
+  font-size: 1.6rem;
+  color: var(--aspect-color);
   filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.7));
 }
 .card-name { font-family: var(--font-ui); font-size: 0.76rem; margin-top: 0.45rem; line-height: 1.3; flex: 1; }
@@ -516,7 +535,9 @@ body.dragging-card .slot.open {
   border-top: 1px solid rgba(58, 49, 69, 0.7);
   width: 92%;
 }
-.gem { cursor: help; }
+.gem { cursor: help; display: inline-flex; align-items: center; }
+.gem .icon { width: 0.95rem; height: 0.95rem; }
+.gem-n { font-family: var(--font-ui); font-size: 0.62rem; margin-left: 1px; }
 .card-decay {
   font-family: var(--font-ui);
   position: absolute;
@@ -591,7 +612,7 @@ body.dragging-card .slot.open {
   margin: 1rem 0 0.4rem;
 }
 .grimoire-entry { border-left: 2px solid var(--line); padding: 0.35rem 0 0.45rem 0.8rem; margin-bottom: 0.55rem; }
-.grimoire-entry strong { font-family: var(--font-ui); font-size: 0.84rem; color: var(--ink); }
+.grimoire-entry strong { font-family: var(--font-body); font-size: 0.86rem; color: var(--ink); }
 .grimoire-entry p { font-size: 0.84rem; color: var(--ink-dim); margin: 0.15rem 0 0.3rem; line-height: 1.5; }
 .grimoire-empty { color: var(--ink-dim); font-style: italic; }
 #btn-grimoire-close { margin-top: 1.2rem; }
