@@ -370,10 +370,10 @@ function trayGroupOf(def) {
   const a = def.aspects;
   if (a.spark) return "ember";
   if (def.menace) return "burdens";
-  if (a.lore || a.text || a.tome || a.annotation) return "lore";
+  if (a.lore || a.text || a.tome || a.annotation || a.ledger) return "lore";
   if (a.story || a.godmemory) return "stories";
-  if (a.listener || a.devotee || a.widow || a.hollows || a.inquisitor) return "company";
-  if (a.funds || a.vigor || a.clarity || a.fervor || a.wonder || a.soul) return "means";
+  if (a.listener || a.devotee || a.widow || a.hollows || a.inquisitor || a.emissary) return "company";
+  if (a.funds || a.vigor || a.clarity || a.fervor || a.wonder || a.soul || a.position) return "means";
   return "curiosities";
 }
 
