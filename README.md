@@ -2,7 +2,7 @@
 
 *a small game about carrying what remains of a god*
 
-**Play it here: <https://emilyzhang.github.io/mythical-simulator/>**
+**Play it here: <https://emilyzhang.github.io/godspark/>**
 
 A [Cultist Simulator](https://weatherfactory.biz/cultist-simulator/)-inspired card-and-verb game: drag cards onto actions, let timers run, and discover recipes through experimentation. You carry the ember of a murdered god through a gaslit city — work, study, and dream your way toward crowning it before the creeping Dread snuffs you out.
 

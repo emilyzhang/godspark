@@ -15,12 +15,12 @@
   --violet: #8f7fd4;
   --line: #3a3145;
   --danger: #8a3b3b;
-  /* engraved caps for the occult-society headings */
-  --font-display: "Copperplate", "Copperplate Gothic Light", "Trajan Pro", Palatino, serif;
-  /* a bookish serif for prose and flavor */
+  /* calligraphic face for the great moments: masthead, prologue, endings */
+  --font-title: "Luminari", "Herculanum", "Baskerville", "Palatino Linotype", Georgia, serif;
+  /* letterspaced Victorian caps for headings, labels and buttons */
+  --font-display: "Baskerville", "Baskerville Old Face", "Hoefler Text", "Didot", "Palatino Linotype", Georgia, serif;
+  /* one bookish serif for everything else: prose, cards, chips, statuses */
   --font-body: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
-  /* a clear humanist face for small informational text */
-  --font-ui: "Optima", "Seravek", "Gill Sans", "Candara", "Segoe UI", sans-serif;
   font-size: 17px;
 }
 
@@ -159,14 +159,15 @@ body {
 /* buttons are engraved plaques, like everything else in this cabinet */
 button {
   font-family: var(--font-display);
+  text-transform: uppercase;
   background: var(--bg-raised);
   color: var(--ink);
   border: 1px solid var(--line);
   border-radius: 4px;
   padding: 0.45rem 0.95rem;
   cursor: pointer;
-  font-size: 0.76rem;
-  letter-spacing: 0.1em;
+  font-size: 0.74rem;
+  letter-spacing: 0.14em;
   transition: border-color 0.2s, color 0.2s;
 }
 button:hover { border-color: var(--gold); }
@@ -176,9 +177,9 @@ button.primary {
   background: linear-gradient(180deg, #3a2c1c, #2a2015);
   border-color: var(--gold);
   color: var(--gold-bright);
-  font-size: 0.88rem;
+  font-size: 0.84rem;
   padding: 0.55rem 1.6rem;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   box-shadow: 0 0 12px rgba(201, 168, 76, 0.12);
 }
 button.primary:hover { box-shadow: 0 0 18px rgba(201, 168, 76, 0.3); }
@@ -206,9 +207,9 @@ button.danger:hover { border-color: var(--danger); color: #c98a8a; }
     transparent, var(--line) 22%, var(--line) 78%, transparent);
 }
 #topbar h1 {
-  font-family: var(--font-display);
-  font-size: 1.45rem;
-  letter-spacing: 0.35em;
+  font-family: var(--font-title);
+  font-size: 1.55rem;
+  letter-spacing: 0.22em;
   color: var(--gold);
   font-weight: normal;
   text-shadow: 0 0 18px rgba(201, 168, 76, 0.35);
@@ -272,8 +273,8 @@ main { max-width: 62rem; margin: 0 auto; padding: 1.5rem; }
   background: radial-gradient(circle at 50% 35%, #2c2338, #1a1424);
 }
 .verb-tile.selected .verb-icon { border-color: var(--gold); }
-.verb-name { font-family: var(--font-display); font-size: 0.85rem; letter-spacing: 0.22em; margin-top: 0.5rem; color: var(--ink); }
-.verb-status { font-family: var(--font-ui); color: var(--ink-dim); font-size: 0.74rem; margin-top: 0.35rem; }
+.verb-name { font-family: var(--font-display); text-transform: uppercase; font-size: 0.82rem; letter-spacing: 0.24em; margin-top: 0.5rem; color: var(--ink); }
+.verb-status { font-family: var(--font-body); color: var(--ink-dim); font-size: 0.74rem; margin-top: 0.35rem; }
 .verb-progress {
   height: 4px;
   background: var(--line);
@@ -300,7 +301,7 @@ main { max-width: 62rem; margin: 0 auto; padding: 1.5rem; }
   padding: 1.1rem 1.25rem;
   margin-bottom: 1.5rem;
 }
-.panel-head h3 { font-family: var(--font-display); color: var(--gold); letter-spacing: 0.15em; font-weight: normal; font-size: 1.05rem; }
+.panel-head h3 { font-family: var(--font-display); text-transform: uppercase; color: var(--gold); letter-spacing: 0.18em; font-weight: normal; font-size: 1rem; }
 .panel-head h3 .icon, #grimoire-entries h3 .icon, .known-workings h4 .icon { margin-right: 0.45em; }
 .verb-desc { color: var(--ink-dim); font-style: italic; font-size: 0.9rem; margin-top: 0.15rem; }
 
@@ -335,7 +336,7 @@ body.dragging-card .slot.open {
 .slot.filled { border-style: solid; }
 
 .panel-footer { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
-.preview-label, .running-label { font-family: var(--font-ui); color: var(--ink-dim); font-size: 0.9rem; }
+.preview-label, .running-label { font-family: var(--font-body); color: var(--ink-dim); font-size: 0.9rem; }
 .preview-label { color: var(--gold); }
 .running-label { color: var(--ember); }
 
@@ -349,7 +350,7 @@ body.dragging-card .slot.open {
 }
 .gained-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.9rem; }
 .gained-card {
-  font-family: var(--font-ui);
+  font-family: var(--font-body);
   border: 1px solid var(--gold);
   color: var(--gold-bright);
   border-radius: 4px;
@@ -521,10 +522,11 @@ body.dragging-card .slot.open {
   left: 50%;
   transform: translate(-50%, -50%);
   font-size: 1.6rem;
+  line-height: 0;
   color: var(--aspect-color);
   filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.7));
 }
-.card-name { font-family: var(--font-ui); font-size: 0.76rem; margin-top: 0.45rem; line-height: 1.3; flex: 1; }
+.card-name { font-family: var(--font-body); font-size: 0.78rem; margin-top: 0.45rem; line-height: 1.3; flex: 1; }
 .gem-row {
   display: flex;
   gap: 0.28rem;
@@ -537,9 +539,9 @@ body.dragging-card .slot.open {
 }
 .gem { cursor: help; display: inline-flex; align-items: center; }
 .gem .icon { width: 0.95rem; height: 0.95rem; }
-.gem-n { font-family: var(--font-ui); font-size: 0.62rem; margin-left: 1px; }
+.gem-n { font-family: var(--font-body); font-size: 0.62rem; margin-left: 1px; }
 .card-decay {
-  font-family: var(--font-ui);
+  font-family: var(--font-body);
   position: absolute;
   top: 0.35rem;
   right: 0.45rem;
@@ -570,7 +572,7 @@ body.dragging-card .slot.open {
 .card-tip p { font-size: 0.82rem; color: var(--ink); margin: 0.3rem 0; line-height: 1.5; }
 .aspect-chips { display: flex; flex-wrap: wrap; gap: 0.3rem; }
 .chip {
-  font-family: var(--font-ui);
+  font-family: var(--font-body);
   font-size: 0.68rem;
   border: 1px solid;
   border-radius: 999px;
@@ -653,6 +655,7 @@ body.dragging-card .slot.open {
 }
 
 #paused-banner {
+  font-family: var(--font-display);
   position: fixed;
   top: 50%;
   left: 50%;
@@ -686,7 +689,7 @@ body.dragging-card .slot.open {
   background: radial-gradient(ellipse at 50% 0%, #2a2136 0%, #171220 70%);
   box-shadow: 0 0 60px rgba(201, 168, 76, 0.12);
 }
-.overlay-inner h2 { font-family: var(--font-display); color: var(--gold); letter-spacing: 0.3em; font-weight: normal; margin-bottom: 1rem; }
+.overlay-inner h2 { font-family: var(--font-title); color: var(--gold); letter-spacing: 0.3em; font-weight: normal; margin-bottom: 1rem; }
 .overlay-inner p { line-height: 1.65; font-style: italic; margin-bottom: 1.5rem; }
 .overlay-inner p::first-letter { font-size: 1.8em; line-height: 1; color: var(--gold); }
 
@@ -713,10 +716,10 @@ body.dragging-card .slot.open {
   text-align: center;
 }
 .prologue-inner h2 {
-  font-family: var(--font-display);
+  font-family: var(--font-title);
   font-weight: normal;
-  font-size: 2rem;
-  letter-spacing: 0.45em;
+  font-size: 2.1rem;
+  letter-spacing: 0.22em;
   padding-left: 0.45em; /* optically recenter the letterspaced caps */
   color: var(--gold);
   text-shadow: 0 0 30px rgba(201, 168, 76, 0.4);

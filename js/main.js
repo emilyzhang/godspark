@@ -58,6 +58,7 @@
     }
   });
 
+  calibrateIcons(); // measure the icon set so each sits centered in its frame
   load();
   render();
   startDreamscape();

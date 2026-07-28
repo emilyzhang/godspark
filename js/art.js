@@ -79,6 +79,34 @@ const ICONS = {
   restart: '<path d="M18.5 12A6.5 6.5 0 1 1 12 5.5"/><path d="M12 2.8 15 5.5 12 8.2"/>',
 };
 
+// Hand-drawn paths rarely balance perfectly in their frame, so each icon
+// is measured once at startup and recentered on (12,12) by its bounding box.
+const ICON_OFFSETS = {};
+
+function calibrateIcons() {
+  const probe = svgEl("svg", { viewBox: "0 0 24 24", width: 24, height: 24 });
+  probe.style.position = "fixed";
+  probe.style.left = "-9999px";
+  document.body.appendChild(probe);
+  for (const [name, markup] of Object.entries(ICONS)) {
+    const g = svgEl("g", {});
+    g.innerHTML = markup;
+    probe.appendChild(g);
+    const box = g.getBBox();
+    const dx = 12 - (box.x + box.width / 2);
+    const dy = 12 - (box.y + box.height / 2);
+    ICON_OFFSETS[name] = `translate(${dx.toFixed(2)} ${dy.toFixed(2)})`;
+    probe.removeChild(g);
+  }
+  probe.remove();
+}
+
+function centeredIconMarkup(name) {
+  const markup = ICONS[name] || ICONS.sparkle;
+  const offset = ICON_OFFSETS[name];
+  return offset ? `<g transform="${offset}">${markup}</g>` : markup;
+}
+
 function iconEl(name) {
   const svg = svgEl("svg", {
     viewBox: "0 0 24 24",
@@ -90,7 +118,7 @@ function iconEl(name) {
     "stroke-linecap": "round",
     "stroke-linejoin": "round",
   });
-  svg.innerHTML = ICONS[name] || ICONS.sparkle;
+  svg.innerHTML = centeredIconMarkup(name);
   return svg;
 }
 
@@ -205,7 +233,7 @@ function buildVeilSigil() {
       "stroke-linejoin": "round",
       opacity: 0.55,
     });
-    station.innerHTML = ICONS[name];
+    station.innerHTML = centeredIconMarkup(name);
     g.appendChild(station);
   });
   svg.appendChild(g);
