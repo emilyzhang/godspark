@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Godspark</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header id="topbar">
+    <div class="title-block">
+      <h1>GODSPARK</h1>
+      <span class="subtitle">a small game about carrying what remains of a god</span>
+    </div>
+    <div class="controls">
+      <button id="btn-pause" title="Space also toggles pause">⏸ Pause</button>
+      <button id="btn-grimoire">📖 Grimoire</button>
+      <button id="btn-mute" title="Toggle sound">🔔</button>
+      <button id="btn-restart" class="danger">↺ Begin Again</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="verb-row" aria-label="Actions"></section>
+
+    <section id="verb-panel" class="hidden" aria-label="Selected action"></section>
+
+    <section id="tray-section">
+      <h2 class="tray-label">YOUR POSSESSIONS <span class="tray-hint">— drag cards onto an open action's slots, or double-click to slot them</span></h2>
+      <div id="card-tray" aria-label="Cards"></div>
+    </section>
+  </main>
+
+  <aside id="grimoire" class="hidden">
+    <div class="grimoire-inner">
+      <h2>THE GRIMOIRE</h2>
+      <p class="grimoire-note">What you learn is never lost — not even to death.</p>
+      <div id="grimoire-entries"></div>
+      <button id="btn-grimoire-close">Close</button>
+    </div>
+  </aside>
+
+  <div id="toasts"></div>
+
+  <div id="overlay" class="hidden">
+    <div class="overlay-inner">
+      <h2 id="overlay-title"></h2>
+      <p id="overlay-text"></p>
+      <button id="overlay-btn"></button>
+    </div>
+  </div>
+
+  <div id="paused-banner" class="hidden">— PAUSED —</div>
+
+  <script src="js/data.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
