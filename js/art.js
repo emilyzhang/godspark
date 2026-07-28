@@ -144,6 +144,85 @@ function buildVeilSigil() {
   return holder;
 }
 
+// The city itself: two silhouette ridges of rooftops, chimneys and spires,
+// with a scatter of warm windows still lit at this hour. Some of them flicker.
+function skylineLayer(seedName, color, withWindows) {
+  const rng = mulberry32(hashString(seedName));
+  const svg = svgEl("svg", {
+    viewBox: "0 0 1200 240",
+    preserveAspectRatio: "xMidYMax slice",
+    class: `skyline ${seedName}`,
+  });
+  let x = -10;
+  while (x < 1210) {
+    const w = 34 + rng() * 72;
+    const h = withWindows ? 34 + rng() * 100 : 70 + rng() * 130;
+    const y = 240 - h;
+    svg.appendChild(svgEl("rect", { x, y, width: w, height: h, fill: color }));
+
+    // chimneys and stovepipes
+    const chimneys = Math.floor(rng() * 3);
+    for (let i = 0; i < chimneys; i++) {
+      const cw = 4 + rng() * 5;
+      svg.appendChild(svgEl("rect", {
+        x: x + 4 + rng() * (w - 12), y: y - 8 - rng() * 12,
+        width: cw, height: 24, fill: color,
+      }));
+    }
+    // the occasional spire or gable
+    if (rng() < 0.22) {
+      const px = x + w / 2;
+      const ph = 18 + rng() * 34;
+      svg.appendChild(svgEl("polygon", {
+        points: `${x + 2},${y} ${px},${y - ph} ${x + w - 2},${y}`, fill: color,
+      }));
+    }
+    // lit windows, front ridge only
+    if (withWindows) {
+      const cols = Math.floor((w - 8) / 11);
+      const rows = Math.floor((h - 14) / 16);
+      for (let c = 0; c < cols; c++) {
+        for (let r = 0; r < rows; r++) {
+          if (rng() < 0.13) {
+            const win = svgEl("rect", {
+              x: x + 6 + c * 11, y: y + 8 + r * 16,
+              width: 4, height: 6, fill: "#ecca7a",
+              opacity: 0.3 + rng() * 0.45,
+            });
+            if (rng() < 0.3) {
+              win.setAttribute("class", "win-flicker");
+              win.style.animationDelay = `${(rng() * 7).toFixed(2)}s`;
+            }
+            svg.appendChild(win);
+          }
+        }
+      }
+    }
+    x += w + (rng() < 0.25 ? 5 + rng() * 12 : 0);
+  }
+  return svg;
+}
+
+function buildCityscape() {
+  const holder = document.createElement("div");
+  holder.id = "cityscape";
+  holder.setAttribute("aria-hidden", "true");
+  holder.appendChild(skylineLayer("ridge-back", "#1c1629", false));
+  holder.appendChild(skylineLayer("ridge-front", "#0d0a15", true));
+  const fog = document.createElement("div");
+  fog.className = "city-fog";
+  holder.appendChild(fog);
+  return holder;
+}
+
+// A patient moon, hazed with its own halo.
+function buildMoon() {
+  const moon = document.createElement("div");
+  moon.id = "moon";
+  moon.setAttribute("aria-hidden", "true");
+  return moon;
+}
+
 // The aurora: three slow-breathing veils of colour behind the city.
 function buildAurora() {
   const aurora = document.createElement("div");
@@ -158,6 +237,7 @@ function buildAurora() {
 }
 
 function startDreamscape() {
-  document.body.prepend(buildVeilSigil());
-  document.body.prepend(buildAurora());
+  // painted back-to-front: aurora, moon, the great sigil, then the city
+  const layers = [buildAurora(), buildMoon(), buildVeilSigil(), buildCityscape()];
+  for (const layer of layers.reverse()) document.body.prepend(layer);
 }

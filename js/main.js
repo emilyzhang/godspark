@@ -20,6 +20,7 @@
     render();
     showEnding(kind);
   });
+  on("newrun", showPrologue); // every new story opens at the graveside
 
   // header controls
   document.querySelector("#btn-pause").addEventListener("click", () => {

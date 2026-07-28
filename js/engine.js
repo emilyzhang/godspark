@@ -29,7 +29,7 @@ let grimoire = []; // [{ recipeId, verb, name, text }]
 
 // ---- listeners the UI hooks into -------------------------------------------
 
-const listeners = { change: [], toast: [], autopause: [], ending: [] };
+const listeners = { change: [], toast: [], autopause: [], ending: [], newrun: [] };
 function on(event, fn) { listeners[event].push(fn); }
 function emit(event, arg) { listeners[event].forEach((fn) => fn(arg)); }
 
@@ -413,6 +413,7 @@ function newRun() {
   state.paused = false;
   for (const defId of STARTING_CARDS) spawnCard(defId);
   save();
+  emit("newrun");
   emit("change");
 }
 

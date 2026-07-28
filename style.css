@@ -4,37 +4,44 @@
    ============================================================ */
 
 :root {
-  --bg: #120e18;
+  --bg: #100c17;
   --bg-raised: #1d1726;
   --bg-panel: #231b2f;
-  --ink: #d8cfc0;
-  --ink-dim: #8d8478;
+  --ink: #ddd5c7;
+  --ink-dim: #968d80;
   --gold: #c9a84c;
   --gold-bright: #eccd7e;
   --ember: #e2703a;
   --violet: #8f7fd4;
   --line: #3a3145;
   --danger: #8a3b3b;
-  font-size: 16px;
+  /* engraved caps for the occult-society headings */
+  --font-display: "Copperplate", "Copperplate Gothic Light", "Trajan Pro", Palatino, serif;
+  /* a bookish serif for prose and flavor */
+  --font-body: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  /* a clear humanist face for small informational text */
+  --font-ui: "Optima", "Seravek", "Gill Sans", "Candara", "Segoe UI", sans-serif;
+  font-size: 17px;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
   background:
-    radial-gradient(ellipse 120% 60% at 50% -10%, #2b2138 0%, transparent 60%),
-    radial-gradient(ellipse 80% 40% at 15% 110%, #241629 0%, transparent 60%),
-    radial-gradient(ellipse 80% 40% at 90% 100%, #1f1a2e 0%, transparent 55%),
-    var(--bg);
+    radial-gradient(ellipse 120% 60% at 50% -10%, #2b2140 0%, transparent 60%),
+    radial-gradient(ellipse 80% 40% at 15% 110%, #241a33 0%, transparent 60%),
+    radial-gradient(ellipse 80% 40% at 90% 100%, #1c1730 0%, transparent 55%),
+    linear-gradient(180deg, #0d0a14 0%, var(--bg) 40%, #16101f 100%);
   color: var(--ink);
-  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  font-family: var(--font-body);
+  line-height: 1.5;
   min-height: 100vh;
-  padding-bottom: 4rem;
+  padding-bottom: 6rem;
 }
 
 /* ---- the dreamscape: aurora, the great sigil, embers & stars ---- */
 
-#embers, #aurora, #veil-sigil {
+#embers, #aurora, #veil-sigil, #cityscape, #moon {
   position: fixed;
   inset: 0;
   z-index: 0;
@@ -86,8 +93,58 @@ body {
 }
 @keyframes veil-spin { to { transform: rotate(360deg); } }
 
+/* the city on the horizon */
+#cityscape {
+  top: auto;
+  height: min(30vh, 250px);
+}
+.skyline {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+.skyline.ridge-back { opacity: 0.85; }
+.city-fog {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 75%;
+  background: linear-gradient(to top,
+    rgba(13, 10, 21, 0.65),
+    rgba(143, 127, 212, 0.045) 55%,
+    transparent);
+}
+.win-flicker { animation: win-flicker 6s ease-in-out infinite; }
+@keyframes win-flicker {
+  0%, 100% { opacity: 0.55; }
+  42% { opacity: 0.1; }
+  50% { opacity: 0.4; }
+  61% { opacity: 0.15; }
+  70% { opacity: 0.5; }
+}
+
+/* a patient moon, hazed with its own halo */
+#moon {
+  inset: auto;
+  top: 6%;
+  right: 7%;
+  width: 6.5rem;
+  height: 6.5rem;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 62% 58%, rgba(118, 104, 78, 0.28) 0 0.4rem, transparent 0.45rem),
+    radial-gradient(circle at 40% 70%, rgba(118, 104, 78, 0.2) 0 0.28rem, transparent 0.33rem),
+    radial-gradient(circle at 55% 32%, rgba(118, 104, 78, 0.18) 0 0.3rem, transparent 0.36rem),
+    radial-gradient(circle at 38% 35%, #f2e9d4 0%, #ded0ac 55%, #b9a986 100%);
+  box-shadow:
+    0 0 2.5rem 0.6rem rgba(238, 224, 180, 0.16),
+    0 0 8rem 2.5rem rgba(238, 224, 180, 0.06);
+  opacity: 0.85;
+}
+
 button {
-  font-family: inherit;
+  font-family: var(--font-ui);
   background: var(--bg-raised);
   color: var(--ink);
   border: 1px solid var(--line);
@@ -125,7 +182,8 @@ button.danger:hover { border-color: var(--danger); color: #c98a8a; }
   background: linear-gradient(180deg, rgba(18, 14, 24, 0.4), transparent);
 }
 #topbar h1 {
-  font-size: 1.5rem;
+  font-family: var(--font-display);
+  font-size: 1.45rem;
   letter-spacing: 0.35em;
   color: var(--gold);
   font-weight: normal;
@@ -187,8 +245,8 @@ main { max-width: 62rem; margin: 0 auto; padding: 1.5rem; }
   background: radial-gradient(circle at 50% 35%, #2c2338, #1a1424);
 }
 .verb-tile.selected .verb-icon { border-color: var(--gold); }
-.verb-name { letter-spacing: 0.25em; margin-top: 0.45rem; color: var(--ink); }
-.verb-status { color: var(--ink-dim); font-size: 0.78rem; margin-top: 0.35rem; font-style: italic; }
+.verb-name { font-family: var(--font-display); font-size: 0.85rem; letter-spacing: 0.22em; margin-top: 0.5rem; color: var(--ink); }
+.verb-status { font-family: var(--font-ui); color: var(--ink-dim); font-size: 0.74rem; margin-top: 0.35rem; }
 .verb-progress {
   height: 4px;
   background: var(--line);
@@ -205,6 +263,8 @@ main { max-width: 62rem; margin: 0 auto; padding: 1.5rem; }
 /* ---- verb panel ---- */
 
 #verb-panel {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   background:
     radial-gradient(ellipse 100% 80% at 50% 0%, rgba(143, 127, 212, 0.05), transparent 60%),
     var(--bg-panel);
@@ -213,7 +273,7 @@ main { max-width: 62rem; margin: 0 auto; padding: 1.5rem; }
   padding: 1.1rem 1.25rem;
   margin-bottom: 1.5rem;
 }
-.panel-head h3 { color: var(--gold); letter-spacing: 0.15em; font-weight: normal; }
+.panel-head h3 { font-family: var(--font-display); color: var(--gold); letter-spacing: 0.15em; font-weight: normal; font-size: 1.05rem; }
 .verb-desc { color: var(--ink-dim); font-style: italic; font-size: 0.9rem; margin-top: 0.15rem; }
 
 .slot-row { display: flex; gap: 0.9rem; margin: 1rem 0; flex-wrap: wrap; }
@@ -247,12 +307,12 @@ body.dragging-card .slot.open {
 .slot.filled { border-style: solid; }
 
 .panel-footer { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
-.preview-label, .running-label { color: var(--ink-dim); font-style: italic; }
+.preview-label, .running-label { font-family: var(--font-ui); color: var(--ink-dim); font-size: 0.9rem; }
 .preview-label { color: var(--gold); }
 .running-label { color: var(--ember); }
 
 .result-block h4 { color: var(--ember); letter-spacing: 0.1em; margin-bottom: 0.4rem; }
-.flavor { line-height: 1.6; margin-bottom: 0.8rem; max-width: 46rem; }
+.flavor { font-size: 1rem; line-height: 1.7; margin-bottom: 0.8rem; max-width: 46rem; }
 .flavor::first-letter {
   font-size: 1.9em;
   line-height: 1;
@@ -261,6 +321,7 @@ body.dragging-card .slot.open {
 }
 .gained-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.9rem; }
 .gained-card {
+  font-family: var(--font-ui);
   border: 1px solid var(--gold);
   color: var(--gold-bright);
   border-radius: 4px;
@@ -276,9 +337,10 @@ body.dragging-card .slot.open {
   border-top: 1px solid var(--line);
 }
 .known-workings h4 {
+  font-family: var(--font-display);
   color: var(--ink-dim);
   font-weight: normal;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   letter-spacing: 0.25em;
   margin-bottom: 0.5rem;
 }
@@ -289,12 +351,13 @@ body.dragging-card .slot.open {
   flex-wrap: wrap;
   padding: 0.18rem 0;
 }
-.working-name { font-size: 0.82rem; color: var(--ink); font-style: italic; min-width: 13rem; }
+.working-name { font-family: var(--font-ui); font-size: 0.82rem; color: var(--ink); min-width: 13rem; }
 
 /* ---- card tray ---- */
 
 .tray-label {
-  font-size: 0.8rem;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
   letter-spacing: 0.25em;
   color: var(--ink-dim);
   font-weight: normal;
@@ -302,6 +365,8 @@ body.dragging-card .slot.open {
 }
 .tray-hint { letter-spacing: normal; font-style: italic; text-transform: none; }
 #card-tray {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   display: flex;
   flex-wrap: wrap;
   gap: 0.8rem;
@@ -430,7 +495,7 @@ body.dragging-card .slot.open {
   font-size: 1.7rem;
   filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.7));
 }
-.card-name { font-size: 0.72rem; margin-top: 0.5rem; line-height: 1.25; flex: 1; }
+.card-name { font-family: var(--font-ui); font-size: 0.76rem; margin-top: 0.45rem; line-height: 1.3; flex: 1; }
 .gem-row {
   display: flex;
   gap: 0.28rem;
@@ -443,10 +508,11 @@ body.dragging-card .slot.open {
 }
 .gem { cursor: help; }
 .card-decay {
+  font-family: var(--font-ui);
   position: absolute;
   top: 0.35rem;
   right: 0.45rem;
-  font-size: 0.66rem;
+  font-size: 0.68rem;
   color: var(--ink-dim);
 }
 .card-decay.urgent { color: var(--ember); animation: urgent-pulse 1s infinite alternate; }
@@ -470,10 +536,11 @@ body.dragging-card .slot.open {
 }
 .card:hover .card-tip { display: block; }
 .card-tip strong { color: var(--gold-bright); font-size: 0.85rem; }
-.card-tip p { font-size: 0.78rem; font-style: italic; color: var(--ink); margin: 0.3rem 0; line-height: 1.45; }
+.card-tip p { font-size: 0.82rem; color: var(--ink); margin: 0.3rem 0; line-height: 1.5; }
 .aspect-chips { display: flex; flex-wrap: wrap; gap: 0.3rem; }
 .chip {
-  font-size: 0.66rem;
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
   border: 1px solid;
   border-radius: 999px;
   padding: 0.05rem 0.45rem;
@@ -503,18 +570,19 @@ body.dragging-card .slot.open {
   padding: 1.5rem 1.75rem;
   box-shadow: 0 0 40px rgba(201, 168, 76, 0.1);
 }
-.grimoire-inner h2 { color: var(--gold); letter-spacing: 0.3em; font-weight: normal; font-size: 1.1rem; }
+.grimoire-inner h2 { font-family: var(--font-display); color: var(--gold); letter-spacing: 0.3em; font-weight: normal; font-size: 1.05rem; }
 .grimoire-note { color: var(--ink-dim); font-style: italic; font-size: 0.85rem; margin: 0.4rem 0 1rem; }
 #grimoire-entries h3 {
+  font-family: var(--font-display);
   color: var(--ember);
   font-weight: normal;
   letter-spacing: 0.2em;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   margin: 1rem 0 0.4rem;
 }
 .grimoire-entry { border-left: 2px solid var(--line); padding: 0.35rem 0 0.45rem 0.8rem; margin-bottom: 0.55rem; }
-.grimoire-entry strong { font-size: 0.85rem; color: var(--ink); }
-.grimoire-entry p { font-size: 0.8rem; color: var(--ink-dim); font-style: italic; margin: 0.15rem 0 0.3rem; }
+.grimoire-entry strong { font-family: var(--font-ui); font-size: 0.84rem; color: var(--ink); }
+.grimoire-entry p { font-size: 0.84rem; color: var(--ink-dim); margin: 0.15rem 0 0.3rem; line-height: 1.5; }
 .grimoire-empty { color: var(--ink-dim); font-style: italic; }
 #btn-grimoire-close { margin-top: 1.2rem; }
 
@@ -534,10 +602,9 @@ body.dragging-card .slot.open {
   background: #0f0c14;
   border: 1px solid var(--gold);
   border-radius: 8px;
-  padding: 0.6rem 0.9rem;
-  font-size: 0.85rem;
-  font-style: italic;
-  line-height: 1.45;
+  padding: 0.65rem 0.95rem;
+  font-size: 0.88rem;
+  line-height: 1.5;
   opacity: 0;
   transform: translateY(0.5rem);
   transition: all 0.4s ease;
@@ -588,18 +655,69 @@ body.dragging-card .slot.open {
   background: radial-gradient(ellipse at 50% 0%, #2a2136 0%, #171220 70%);
   box-shadow: 0 0 60px rgba(201, 168, 76, 0.12);
 }
-.overlay-inner h2 { color: var(--gold); letter-spacing: 0.3em; font-weight: normal; margin-bottom: 1rem; }
+.overlay-inner h2 { font-family: var(--font-display); color: var(--gold); letter-spacing: 0.3em; font-weight: normal; margin-bottom: 1rem; }
 .overlay-inner p { line-height: 1.65; font-style: italic; margin-bottom: 1.5rem; }
 .overlay-inner p::first-letter { font-size: 1.8em; line-height: 1; color: var(--gold); }
 
 .hidden { display: none !important; }
+
+
+/* ---- prologue ---- */
+
+#prologue {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 20%, rgba(43, 33, 64, 0.55) 0%, transparent 70%),
+    rgba(8, 6, 12, 0.96);
+  overflow-y: auto;
+}
+.prologue-inner {
+  width: min(36rem, 90vw);
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+.prologue-inner h2 {
+  font-family: var(--font-display);
+  font-weight: normal;
+  font-size: 2rem;
+  letter-spacing: 0.45em;
+  padding-left: 0.45em; /* optically recenter the letterspaced caps */
+  color: var(--gold);
+  text-shadow: 0 0 30px rgba(201, 168, 76, 0.4);
+  margin-bottom: 2rem;
+}
+#prologue-passages p {
+  text-align: left;
+  font-size: 1.02rem;
+  line-height: 1.8;
+  margin-bottom: 1.2rem;
+  color: var(--ink);
+}
+#prologue-passages p:first-child::first-letter {
+  font-size: 2.6em;
+  line-height: 0.9;
+  float: left;
+  padding: 0.05em 0.12em 0 0;
+  color: var(--gold);
+}
+#prologue-passages p:last-child {
+  text-align: center;
+  font-style: italic;
+  color: var(--gold-bright);
+}
+#prologue-btn { margin-top: 1.2rem; }
 
 /* stillness, for those who prefer it */
 @media (prefers-reduced-motion: reduce) {
   .aurora-blob, .veil-turn, .card::after, .sigil-ring,
   .twinkle, .card.radiant .card-art,
   .verb-tile.complete, .card.useful, .card-decay.urgent,
-  body.dragging-card .slot.open {
+  .win-flicker, body.dragging-card .slot.open {
     animation: none;
   }
 }

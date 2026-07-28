@@ -28,6 +28,19 @@ const ASPECTS = {
   offer:      { icon: "⁂",  label: "Offer",      color: "#8a7a5a" },
   godmemory:  { icon: "✾",  label: "God-Memory", color: "#d8a8b8" },
   blessing:   { icon: "❦",  label: "Blessing",   color: "#a8c8a0" },
+  inquisitor: { icon: "⚖",  label: "Inquisitor", color: "#8f9a8f" },
+  annotation: { icon: "✍",  label: "Annotation", color: "#a9a06f" },
+};
+
+const PROLOGUE = {
+  title: "GODSPARK",
+  passages: [
+    "A god died in this city, nine nights ago. You know this because you were there when they buried what was left of him — a pauper's plot behind the gasworks, no stone, no song — and because, when the grave-lantern guttered, something small and warm crawled up out of the turned earth and into your open, astonished mouth.",
+    "You swallowed. It was that, or drown in light.",
+    "You are nobody in particular: a lodger, an odd-jobber, a reader of cheap pamphlets. But under your sternum something sleeps that was worshipped once, and this city is full of powers — grey-hatted, veiled, and hollow — who would open you like a letter to take it back.",
+    "Work. Study. Dream. And be quiet about it.",
+  ],
+  button: "Light the Lamp",
 };
 
 // lifespan is in seconds of unpaused game time; cards with no lifespan endure.
@@ -204,6 +217,21 @@ const CARD_DEFS = {
     desc: "Your signature, in something warmer than ink.",
     aspects: {},
   },
+  inquisitor_vellum: {
+    name: "Inquisitor T. Vellum", icon: "⚖",
+    desc: "Of the Ashen Order. He has burned forty-one books and wept over nine of them, which is nine more than his superiors know. He takes his tea black, his heresies seriously, and his time.",
+    aspects: { inquisitor: 1 },
+  },
+  vellum_secret: {
+    name: "The Inquisitor's Annotations", icon: "✍",
+    desc: "Marginalia from the one surviving copy of 'On the Warmth of the Word' — the commentary Vellum himself wrote, twenty years ago, before his own Order suppressed it. The handwriting in the margins is younger, and it is on fire with joy.",
+    aspects: { story: 1, annotation: 1 },
+  },
+  vellum_ally: {
+    name: "Vellum, Unmade and Remade", icon: "🕯",
+    desc: "He still wears the grey hat — it is useful — but the warrant he carries now is blank, and the reports he files are beautiful fictions. The Order's own veil, folded over you by the Order's own hand.",
+    aspects: { devotee: 1, veil: 1 },
+  },
   floorboard_offer: {
     name: "A Murmur at the Counter", icon: "⁂",
     desc: "The pamphlet-seller glances at the floor by the till, then at you, then at the floor again. 'For a regular customer,' he says, 'there is also the other stock.'",
@@ -379,6 +407,22 @@ const RECIPES = [
     grimoire: "A Story, studied, yields Veil-lore — and a little Dread.",
   },
   {
+    id: "study_vellum", verb: "study", priority: 5, duration: 15, once: true,
+    name: "Research the Researcher",
+    requires: { inquisitor: 1 },
+    consumes: {}, produces: ["vellum_secret", "wonder"],
+    text: "The newspaper morgue remembers what the Order would prefer forgotten: twenty years ago, one T. Vellum published a commentary called 'On the Warmth of the Word.' His own Order burned the print run. He lit the fire himself, they say — and wept, they don't say, but the one surviving copy has marginalia, and you have found it, and the margins are weeping still.",
+    grimoire: "Inquisitor Vellum wrote a burned book once. His Annotations survive — and can be found at Study.",
+  },
+  {
+    id: "study_vellum_again", verb: "study", priority: 4, duration: 10,
+    name: "Consider the Inquisitor",
+    requires: { inquisitor: 1 },
+    consumes: {}, produces: [],
+    text: "You watch him a while from the window. He is exactly what he appears to be. That is the most frightening thing about him, and also — you begin to suspect — the saddest.",
+    grimoire: null,
+  },
+  {
     id: "study_wonder", verb: "study", priority: 1, duration: 10,
     name: "Pin the Moth",
     requires: { wonder: 1 },
@@ -503,6 +547,14 @@ const RECIPES = [
     grimoire: "THE VEILING: Veil-lore at Rite folds away Suspicion — up to three eyes at once.",
   },
   {
+    id: "rite_vellum_convert", verb: "rite", priority: 6, duration: 25, once: true,
+    name: "Return His Words to Him",
+    requires: { inquisitor: 1, annotation: 1, flame: 1 },
+    consumes: { inquisitor: 1, annotation: 1 }, produces: ["vellum_ally", "wonder"],
+    text: "You invite him in — it is that, or the Knock — and across the circle you lay his own marginalia, with the true fire burning beside them. He reads for a long time. The candles are very patient. Then Inquisitor Vellum takes off his grey hat, feeds his warrant to the flame, and asks, in the voice of a man who has not asked anything in twenty years: 'Does it remember me too?'",
+    grimoire: "Even an Inquisitor may be converted: show Vellum his own Annotations at Rite, with Flame-lore burning.",
+  },
+  {
     id: "rite_kindle", verb: "rite", priority: 6, duration: 25,
     name: "The Kindling Rite",
     requires: { spark: 1, flame: 2, fervor: 1 },
@@ -570,6 +622,15 @@ const EVENTS = [
     effects: {
       spawn: ["watcher"],
       toast: "A man in a grey hat has taken up residence at the corner of your street. He is very good at reading the same page.",
+      kind: "omen",
+    },
+  },
+  {
+    id: "ev_vellum",
+    when: { aspectAtLeast: { suspicion: 3 } },
+    effects: {
+      spawn: ["inquisitor_vellum"],
+      toast: "A calling-card, bone-white, its edges singed as a courtesy: INQ. T. VELLUM, OF THE ASHEN ORDER, WILL CALL AT A CONVENIENT HOUR. All hours, you understand, are convenient to him.",
       kind: "omen",
     },
   },

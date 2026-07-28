@@ -446,6 +446,27 @@ function showEnding(kind) {
   $("#overlay").classList.remove("hidden");
 }
 
+// ---- prologue --------------------------------------------------------------
+
+function showPrologue() {
+  $("#prologue-title").textContent = PROLOGUE.title;
+  const passages = $("#prologue-passages");
+  passages.innerHTML = "";
+  for (const passage of PROLOGUE.passages) {
+    const p = document.createElement("p");
+    p.textContent = passage;
+    passages.appendChild(p);
+  }
+  const btn = $("#prologue-btn");
+  btn.textContent = PROLOGUE.button;
+  btn.onclick = () => {
+    $("#prologue").classList.add("hidden");
+    setPaused(false);
+  };
+  setPaused(true);
+  $("#prologue").classList.remove("hidden");
+}
+
 // ---- master render ---------------------------------------------------------
 
 function render() {
