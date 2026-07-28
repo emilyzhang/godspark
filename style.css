@@ -451,7 +451,13 @@ body.dragging-card .slot.open {
   background: var(--aspect-color);
   opacity: 0.85;
 }
-.card:hover { border-color: var(--gold); z-index: 5; transform: translateY(-2px); }
+/* hover feedback must never move the card itself: a translate here makes the
+   hit-box slide out from under the cursor and strobe hover on/off forever */
+.card:hover {
+  border-color: var(--gold);
+  z-index: 5;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45), 0 0 10px rgba(201, 168, 76, 0.18);
+}
 .card.dragging { opacity: 0.4; }
 .card.in-slot { cursor: pointer; width: 100%; height: 100%; }
 
