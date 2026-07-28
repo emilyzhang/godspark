@@ -2,6 +2,8 @@
 
 *a small game about carrying what remains of a god*
 
+**Play it here: <https://emilyzhang.github.io/mythical-simulator/>**
+
 A [Cultist Simulator](https://weatherfactory.biz/cultist-simulator/)-inspired card-and-verb game: drag cards onto actions, let timers run, and discover recipes through experimentation. You carry the ember of a murdered god through a gaslit city — work, study, and dream your way toward crowning it before the creeping Dread snuffs you out.
 
 The city acts on its own: public acts breed **Suspicion**, and the grey-hatted **Ashen Order** comes knocking when it gathers — first in the person of **Inquisitor T. Vellum**, who burned forty-one books and wept over nine of them, and who can, with care, be unmade and remade. The **Widow of Lantern Row** — who attended the same funeral you did — trades in dreams, and knows more about what you carry than she first admits. Under the deeper lore there is a name, and the name is the **Mother of Hollows**, and she pays fairly, which is the trap. Return often to the Ash Garden and it will give up, hour by buried hour, the story of how a god was unmade — and by whom. Four endings: ambition, bargain, despair, and mercy.
