@@ -307,7 +307,11 @@ function checkMenaceFusion() {
 
 function checkEndings() {
   if (state.ended) return;
-  if (state.cards.some((c) => c.defId === "hollow_pact")) {
+  if (state.cards.some((c) => c.defId === "ash_rest")) {
+    state.ended = "quenched";
+    state.paused = true;
+    emit("ending", "quenched");
+  } else if (state.cards.some((c) => c.defId === "hollow_pact")) {
     state.ended = "bargain";
     state.paused = true;
     emit("ending", "bargain");

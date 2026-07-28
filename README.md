@@ -4,7 +4,9 @@
 
 A [Cultist Simulator](https://weatherfactory.biz/cultist-simulator/)-inspired card-and-verb game: drag cards onto actions, let timers run, and discover recipes through experimentation. You carry the ember of a murdered god through a gaslit city — work, study, and dream your way toward crowning it before the creeping Dread snuffs you out.
 
-The city acts on its own: public acts breed **Suspicion**, and the grey-hatted **Ashen Order** comes knocking when it gathers. The **Widow of Lantern Row** — who attended the same funeral you did — trades in dreams. And under the deeper lore there is a name, and the name is the **Mother of Hollows**, and she pays fairly, which is the trap. Three endings.
+The city acts on its own: public acts breed **Suspicion**, and the grey-hatted **Ashen Order** comes knocking when it gathers. The **Widow of Lantern Row** — who attended the same funeral you did — trades in dreams, and knows more about what you carry than she first admits. Under the deeper lore there is a name, and the name is the **Mother of Hollows**, and she pays fairly, which is the trap. Return often to the Ash Garden and it will give up, hour by buried hour, the story of how a god was unmade — and by whom. Four endings: ambition, bargain, despair, and mercy.
+
+Every graphic is generated at runtime: each card bears a constellation-sigil drawn deterministically from its name, an aurora breathes behind the city, stars twinkle among the drifting embers, and a vast working turns slowly beneath the whole table.
 
 ## Playing
 
@@ -44,7 +46,8 @@ Zero dependencies, deliberately: hand-written HTML/CSS/JS, no npm, no CDNs, no n
 | `js/data.js` | All game content — cards, verbs, recipes, events, endings |
 | `js/engine.js` | Game state, clock, recipe matching, events, save/load (no DOM) |
 | `js/ui.js` | Rendering, drag & drop, panels |
-| `js/fx.js` | Synthesized sound (reverb included) and ambient ember particles |
+| `js/fx.js` | Synthesized sound (reverb included), ember & star particles |
+| `js/art.js` | Procedural art — per-card constellation-sigils, the aurora, the great sigil |
 | `js/main.js` | Bootstrap wiring |
 | `style.css` | Gaslit occult styling |
 

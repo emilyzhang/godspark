@@ -57,6 +57,7 @@
 
   load();
   render();
+  startDreamscape();
   startEmbers();
   setInterval(tick, TICK_MS);
   setInterval(save, 5000); // autosave

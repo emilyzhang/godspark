@@ -26,6 +26,8 @@ const ASPECTS = {
   hollows:    { icon: "◌",  label: "Hollows",    color: "#6f5a8f" },
   invitation: { icon: "✉",  label: "Invitation", color: "#7a6f9a" },
   offer:      { icon: "⁂",  label: "Offer",      color: "#8a7a5a" },
+  godmemory:  { icon: "✾",  label: "God-Memory", color: "#d8a8b8" },
+  blessing:   { icon: "❦",  label: "Blessing",   color: "#a8c8a0" },
 };
 
 // lifespan is in seconds of unpaused game time; cards with no lifespan endure.
@@ -128,9 +130,34 @@ const CARD_DEFS = {
     aspects: { story: 1 },
   },
   memory_garden: {
-    name: "Memory: The Ash Garden", icon: "🗝",
+    name: "Memory: The Ash Garden", icon: "✾",
     desc: "You stood where a god died. The roses were still warm.",
+    aspects: { story: 1, godmemory: 1 },
+  },
+  memory_funeral: {
+    name: "Memory: The Longest Funeral", icon: "✾",
+    desc: "Rain that fell upward. Mourners with too many shadows. And at the graveside, apart from all the rest, a woman who did not lift her veil.",
+    aspects: { story: 1, godmemory: 1 },
+  },
+  memory_choir: {
+    name: "Memory: The Quiet Choir", icon: "✾",
+    desc: "You saw their faces at last — His own brothers and sisters, singing Him closed with perfect harmony and dry eyes. They called it mercy. The Ember remembers it differently.",
+    aspects: { story: 1, godmemory: 1 },
+  },
+  choir_hymn: {
+    name: "A Hymn Above the Rooftops", icon: "♫",
+    desc: "Sung at dusk by nothing visible, in a harmony with too many voices. The city hears weather. You hear a question, patiently repeated: where is he. where is he. where is he.",
     aspects: { story: 1 },
+  },
+  widow_blessing: {
+    name: "The Widow's Blessing", icon: "❦",
+    desc: "'If you must carry him, carry him gently. And if you can, little thief — let him sleep.' Her veil, a square of ash-grey lace, folded small into your hand.",
+    aspects: { blessing: 1 },
+  },
+  ash_rest: {
+    name: "The Garden, At Rest", icon: "🌹",
+    desc: "Grey roses, going green at the root.",
+    aspects: {},
   },
   dream_door: {
     name: "Dream of the Grey Door", icon: "🗝",
@@ -426,6 +453,22 @@ const RECIPES = [
     grimoire: "The Widow, visited in Dream with two Coins, sells Veil-lore.",
   },
   {
+    id: "dream_widow_reveal", verb: "dream", priority: 6, duration: 20, once: true,
+    name: "Show Her What the Garden Gave You",
+    requires: { widow: 1, godmemory: 1 },
+    consumes: { godmemory: 1 }, produces: ["widow_blessing", "lore_veil1"],
+    text: "You lay the memory on her tea-table, between the grey cups. For a long moment she is entirely still. Then she lifts her veil — and you understand, finally, whose funeral was longer than yours. 'You have been carrying my husband,' says the Widow of Lantern Row, 'in your chest, like a stolen watch.' She does not take him back. She gives you something instead.",
+    grimoire: "The Widow buried the Unmade God. Shown one of His memories in Dream, she gives her BLESSING.",
+  },
+  {
+    id: "dream_quench", verb: "dream", priority: 7, duration: 30,
+    name: "The Quenching",
+    requires: { spark: 2, blessing: 1 },
+    consumes: { spark: 1, blessing: 1 }, produces: ["ash_rest"],
+    text: "You carry the woken ember down the stairs, through the door, into the garden — and she walks with you, veil lifted, naming every rose. You kneel where the absence is deepest and open your chest like a lantern. He goes out the way a long day does: slowly, warmly, without regret. The last thing the warmth says, in your own voice: thank you for carrying me home.",
+    grimoire: "THE QUENCHING: the woken Spark, carried into Dream with the Widow's Blessing, may be laid to rest.",
+  },
+  {
     id: "dream_widow_story", verb: "dream", priority: 5, duration: 18,
     name: "A Memory for a Memory",
     requires: { widow: 1, story: 1 },
@@ -569,6 +612,33 @@ const EVENTS = [
     },
   },
   {
+    id: "ev_memory_funeral",
+    when: { counterAtLeast: { recipe: "dream_spark_again", n: 2 } },
+    effects: {
+      spawn: ["memory_funeral"],
+      toast: "On this visit, the Ash Garden gives up a buried hour: a funeral you did not attend, and yet remember.",
+      kind: "omen",
+    },
+  },
+  {
+    id: "ev_memory_choir",
+    when: { counterAtLeast: { recipe: "dream_spark_again", n: 4 } },
+    effects: {
+      spawn: ["memory_choir", "dread"],
+      toast: "The garden shows you the singers. You wake with your jaw aching, as if you had been harmonizing in your sleep.",
+      kind: "dark",
+    },
+  },
+  {
+    id: "ev_choir_hymn",
+    when: { cardExists: "spark2" },
+    effects: {
+      spawn: ["choir_hymn", "dread"],
+      toast: "At dusk, a hymn above the rooftops, sung by nothing visible. The Quiet Choir has noticed that something is awake.",
+      kind: "dark",
+    },
+  },
+  {
     id: "ev_floorboards",
     when: { counterAtLeast: { recipe: "study_buy", n: 3 } },
     effects: {
@@ -597,6 +667,11 @@ const ENDINGS = {
     title: "THE LONG DARK",
     text: "The lamps went out one by one, and one by one you forgot that you had ever lit them. The ember passes to other hands — but what you LEARNED does not. Your Grimoire remembers, even here.",
     button: "Begin Again, Remembering",
+  },
+  quenched: {
+    title: "THE GENTLE ASH",
+    text: "For the first time since you swallowed the spark, your chest is only warm the way anyone's is. The Choir's hymn moves on to other rooftops, searching for something that no longer exists to be found. The Widow visits, some evenings, and you drink grey tea and speak of nothing important, which is everything. The door at the bottom of the stairs is still there. But these days it is only a door — and the roses, at last, are only roses.",
+    button: "Begin a New Story",
   },
   bargain: {
     title: "THE HOLLOW BARGAIN",

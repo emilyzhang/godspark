@@ -94,6 +94,16 @@ function startEmbers() {
   const COLORS = ["#e2703a", "#c9a84c", "#8f7fd4"];
   const embers = Array.from({ length: 26 }, () => spawnEmber(true));
 
+  // a sparse, patient starfield behind the embers
+  const stars = Array.from({ length: 70 }, () => ({
+    fx: Math.random(), fy: Math.random(),  // fractional position, survives resize
+    r: 0.4 + Math.random() * 0.9,
+    base: 0.06 + Math.random() * 0.22,
+    speed: 0.3 + Math.random() * 0.8,
+    phase: Math.random() * Math.PI * 2,
+    warm: Math.random() < 0.35,
+  }));
+
   function spawnEmber(anywhere) {
     return {
       x: Math.random() * w,
@@ -112,6 +122,15 @@ function startEmbers() {
     const dt = Math.min((now - last) / 1000, 0.1);
     last = now;
     ctx.clearRect(0, 0, w, h);
+    const t = now / 1000;
+    for (const s of stars) {
+      const twinkle = 0.5 + 0.5 * Math.sin(t * s.speed + s.phase);
+      ctx.globalAlpha = s.base * twinkle;
+      ctx.fillStyle = s.warm ? "#e9d98a" : "#cfd4ee";
+      ctx.beginPath();
+      ctx.arc(s.fx * w, s.fy * h, s.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
     for (let i = 0; i < embers.length; i++) {
       const e = embers[i];
       e.y -= e.speed * dt;

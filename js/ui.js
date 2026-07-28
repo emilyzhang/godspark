@@ -53,6 +53,7 @@ function cardEl(card, { draggable = true } = {}) {
   const el = document.createElement("div");
   el.className = "card";
   if (def.menace) el.classList.add("menace");
+  if (card.defId.startsWith("spark")) el.classList.add("radiant");
   el.dataset.uid = card.uid;
   el.draggable = draggable;
   el.style.setProperty("--aspect-color", dominantAspectColor(def));
@@ -61,15 +62,20 @@ function cardEl(card, { draggable = true } = {}) {
   ribbon.className = "card-ribbon";
   el.appendChild(ribbon);
 
+  // the card's art: its constellation-sigil, with the icon at its heart
+  const art = document.createElement("div");
+  art.className = "card-art";
+  art.appendChild(cardSigil(card.defId, dominantAspectColor(def)));
   const icon = document.createElement("div");
   icon.className = "card-icon";
   icon.textContent = def.icon;
+  art.appendChild(icon);
 
   const name = document.createElement("div");
   name.className = "card-name";
   name.textContent = def.name;
 
-  el.appendChild(icon);
+  el.appendChild(art);
   el.appendChild(name);
   el.appendChild(aspectGems(def.aspects));
 

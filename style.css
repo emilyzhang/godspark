@@ -32,14 +32,59 @@ body {
   padding-bottom: 4rem;
 }
 
-/* the drifting embers live behind everything */
-#embers {
+/* ---- the dreamscape: aurora, the great sigil, embers & stars ---- */
+
+#embers, #aurora, #veil-sigil {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
 }
 #topbar, main { position: relative; z-index: 1; }
+
+#aurora { overflow: hidden; }
+.aurora-blob {
+  position: absolute;
+  width: 70vmax;
+  height: 70vmax;
+  border-radius: 50%;
+  filter: blur(70px);
+  mix-blend-mode: screen;
+  opacity: 0.6;
+}
+.aurora-1 {
+  top: -30vmax; left: -20vmax;
+  background: radial-gradient(circle, rgba(143, 127, 212, 0.22) 0%, transparent 65%);
+  animation: drift-1 67s ease-in-out infinite alternate;
+}
+.aurora-2 {
+  top: -10vmax; right: -25vmax;
+  background: radial-gradient(circle, rgba(74, 143, 131, 0.18) 0%, transparent 65%);
+  animation: drift-2 89s ease-in-out infinite alternate;
+}
+.aurora-3 {
+  bottom: -35vmax; left: 15vmax;
+  background: radial-gradient(circle, rgba(201, 168, 76, 0.13) 0%, transparent 65%);
+  animation: drift-3 103s ease-in-out infinite alternate;
+}
+@keyframes drift-1 { to { transform: translate(14vmax, 10vmax) scale(1.25); } }
+@keyframes drift-2 { to { transform: translate(-16vmax, 12vmax) scale(0.85); } }
+@keyframes drift-3 { to { transform: translate(10vmax, -12vmax) scale(1.2); } }
+
+/* the vast working inscribed behind the table */
+#veil-sigil {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.055;
+}
+#veil-sigil svg { width: 160vmin; height: 160vmin; flex: none; }
+.veil-turn {
+  animation: veil-spin 420s linear infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+@keyframes veil-spin { to { transform: rotate(360deg); } }
 
 button {
   font-family: inherit;
@@ -315,13 +360,76 @@ body.dragging-card .slot.open {
 .card.inert { opacity: 0.55; }
 .card.inert:hover { opacity: 1; }
 
+/* an iridescent sheen drifts across every card, like oil on dark water */
+.card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(115deg,
+    transparent 25%,
+    rgba(190, 170, 255, 0.06) 42%,
+    rgba(255, 222, 160, 0.09) 50%,
+    rgba(140, 220, 205, 0.06) 58%,
+    transparent 75%);
+  background-size: 300% 300%;
+  animation: sheen 9s ease-in-out infinite;
+}
+@keyframes sheen {
+  0%   { background-position: 100% 100%; }
+  55%  { background-position: 0% 0%; }
+  100% { background-position: 100% 100%; }
+}
+
 /* menaces smoulder instead of shining */
 .card.menace {
   background: linear-gradient(170deg, #241f2c 0%, #171219 100%);
 }
 .card.menace .card-icon { filter: grayscale(0.3); }
+.card.menace::after { opacity: 0.35; }
 
-.card-icon { font-size: 1.9rem; margin-top: 0.45rem; }
+/* the sparks are lit from within */
+.card.radiant .card-art { animation: radiant-pulse 2.8s ease-in-out infinite alternate; }
+@keyframes radiant-pulse {
+  from { filter: drop-shadow(0 0 3px rgba(255, 207, 92, 0.35)); }
+  to   { filter: drop-shadow(0 0 10px rgba(255, 207, 92, 0.75)); }
+}
+
+/* card art: the sigil, with the icon at its heart */
+.card-art {
+  position: relative;
+  width: 100%;
+  height: 4rem;
+  margin-top: 0.1rem;
+  flex: none;
+}
+.card-art .sigil {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.sigil-ring {
+  animation: sigil-spin 52s linear infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+@keyframes sigil-spin { to { transform: rotate(-360deg); } }
+.twinkle { animation: twinkle 3.4s ease-in-out infinite; }
+.twinkle-late { animation-delay: 1.7s; }
+@keyframes twinkle {
+  0%, 100% { opacity: 0.08; }
+  50%      { opacity: 0.7; }
+}
+.card-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.7rem;
+  filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.7));
+}
 .card-name { font-size: 0.72rem; margin-top: 0.5rem; line-height: 1.25; flex: 1; }
 .gem-row {
   display: flex;
@@ -485,3 +593,13 @@ body.dragging-card .slot.open {
 .overlay-inner p::first-letter { font-size: 1.8em; line-height: 1; color: var(--gold); }
 
 .hidden { display: none !important; }
+
+/* stillness, for those who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .aurora-blob, .veil-turn, .card::after, .sigil-ring,
+  .twinkle, .card.radiant .card-art,
+  .verb-tile.complete, .card.useful, .card-decay.urgent,
+  body.dragging-card .slot.open {
+    animation: none;
+  }
+}
