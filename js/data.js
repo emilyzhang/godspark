@@ -1,23 +1,31 @@
 // ============================================================
-// GODSPARK — game content: aspects, cards, verbs, recipes.
+// GODSPARK — game content: aspects, cards, verbs, recipes, events.
 // All data, no logic. Everything the player can discover is here.
 // ============================================================
 
 const ASPECTS = {
-  flame:   { icon: "🜂", label: "Flame",   color: "#e2703a" },
-  veil:    { icon: "☾",  label: "Veil",    color: "#8f7fd4" },
-  lore:    { icon: "📖", label: "Lore",    color: "#b8a06a" },
-  spark:   { icon: "✦",  label: "Spark",   color: "#ffcf5c" },
-  story:   { icon: "🗝", label: "Story",   color: "#7fb7a3" },
-  text:    { icon: "¶",  label: "Text",    color: "#a9a9a9" },
-  funds:   { icon: "⛀",  label: "Funds",   color: "#c9b458" },
-  vigor:   { icon: "♥",  label: "Vigour",  color: "#b5544e" },
-  clarity: { icon: "◆",  label: "Clarity", color: "#6f9fc8" },
-  fervor:  { icon: "♠",  label: "Fervour", color: "#c76fa0" },
-  wonder:  { icon: "✧",  label: "Wonder",  color: "#e9d98a" },
-  dread:   { icon: "●",  label: "Dread",   color: "#5c5470" },
-  despair: { icon: "○",  label: "Despair", color: "#3a3644" },
-  soul:    { icon: "☺",  label: "Soul",    color: "#cfa47f" },
+  flame:      { icon: "🜂", label: "Flame",      color: "#e2703a" },
+  veil:       { icon: "☾",  label: "Veil",       color: "#8f7fd4" },
+  lore:       { icon: "📖", label: "Lore",       color: "#b8a06a" },
+  spark:      { icon: "✦",  label: "Spark",      color: "#ffcf5c" },
+  story:      { icon: "🗝", label: "Story",      color: "#7fb7a3" },
+  text:       { icon: "¶",  label: "Text",       color: "#a9a9a9" },
+  tome:       { icon: "▤",  label: "Tome",       color: "#c98a5a" },
+  funds:      { icon: "⛀",  label: "Funds",      color: "#c9b458" },
+  vigor:      { icon: "♥",  label: "Vigour",     color: "#b5544e" },
+  clarity:    { icon: "◆",  label: "Clarity",    color: "#6f9fc8" },
+  fervor:     { icon: "♠",  label: "Fervour",    color: "#c76fa0" },
+  wonder:     { icon: "✧",  label: "Wonder",     color: "#e9d98a" },
+  dread:      { icon: "●",  label: "Dread",      color: "#5c5470" },
+  despair:    { icon: "○",  label: "Despair",    color: "#3a3644" },
+  soul:       { icon: "☺",  label: "Soul",       color: "#cfa47f" },
+  suspicion:  { icon: "👁", label: "Suspicion",  color: "#8f9a6f" },
+  listener:   { icon: "👤", label: "Listener",   color: "#9a8fa8" },
+  devotee:    { icon: "🕯", label: "Devotee",    color: "#d4a75f" },
+  widow:      { icon: "🥀", label: "The Widow",  color: "#a06f8f" },
+  hollows:    { icon: "◌",  label: "Hollows",    color: "#6f5a8f" },
+  invitation: { icon: "✉",  label: "Invitation", color: "#7a6f9a" },
+  offer:      { icon: "⁂",  label: "Offer",      color: "#8a7a5a" },
 };
 
 // lifespan is in seconds of unpaused game time; cards with no lifespan endure.
@@ -68,16 +76,31 @@ const CARD_DEFS = {
     name: "Dread", icon: "●",
     desc: "Something is behind the door of the world. You have begun to hear it breathing.",
     aspects: { dread: 1 },
+    menace: true,
   },
   despair: {
     name: "Despair", icon: "○",
     desc: "The lamps have gone out, one by one, and you cannot remember lighting them.",
     aspects: { despair: 1 },
+    menace: true,
+  },
+  suspicion: {
+    name: "Suspicion", icon: "👁",
+    desc: "Someone repeated what you said on the corner. Someone else wrote it down.",
+    aspects: { suspicion: 1 },
+    menace: true,
+    lifespan: 240,
+    expireText: "The city forgets, eventually. It has so much to remember.",
   },
   pamphlet: {
     name: "A Creased Pamphlet", icon: "📜",
     desc: "'THE NEW DAWN CONGREGATION WELCOMES ALL.' Cheap ink — and under it, heat.",
     aspects: { text: 1 },
+  },
+  kindled_heart: {
+    name: "The Kindled Heart", icon: "❤️‍🔥",
+    desc: "Bound in scorched leather. Banned in three principalities, burned in a fourth — which only proved its point.",
+    aspects: { tome: 1 },
   },
   lore_flame1: {
     name: "Lore: A Spark of the First Flame", icon: "📕",
@@ -124,28 +147,63 @@ const CARD_DEFS = {
     desc: "They would do things for you. Perhaps they already have.",
     aspects: { devotee: 1 },
   },
+  watcher: {
+    name: "A Watcher in Grey", icon: "🎩",
+    desc: "He reads the same page of the same newspaper at the same corner, every day. The Ashen Order trains them not to blink. You could learn something from him — carefully.",
+    aspects: { story: 1 },
+  },
+  widow_card: {
+    name: "The Widow of Lantern Row", icon: "🥀",
+    desc: "Her mourning-veil is ash-grey, and she does not lift it. 'We attended the same funeral, I think, you and I. Mine was longer.'",
+    aspects: { widow: 1 },
+  },
+  widow_warning: {
+    name: "The Widow's Note", icon: "🥀",
+    desc: "Violet ink, unsigned: 'They felt that, you know. All of them felt it. Be quick now, or be quiet.'",
+    aspects: { story: 1 },
+  },
+  hollow_invitation: {
+    name: "A Name, Written Under the World", icon: "✉",
+    desc: "It was on the underside of the lore all along, the way an address is on the underside of an envelope. MOTHER OF HOLLOWS. To speak it aloud, bring what frightens you.",
+    aspects: { invitation: 1 },
+  },
+  mother_hollows: {
+    name: "The Mother of Hollows", icon: "◌",
+    desc: "She is shaped like an absence where a queen should be. She is fond of you, the way you are fond of a meal that is not finished yet. She trades fairly. That is the trap.",
+    aspects: { hollows: 1 },
+  },
+  hollow_pact: {
+    name: "The Pact, Signed", icon: "🖋",
+    desc: "Your signature, in something warmer than ink.",
+    aspects: {},
+  },
+  floorboard_offer: {
+    name: "A Murmur at the Counter", icon: "⁂",
+    desc: "The pamphlet-seller glances at the floor by the till, then at you, then at the floor again. 'For a regular customer,' he says, 'there is also the other stock.'",
+    aspects: { offer: 1 },
+  },
 };
 
 const VERB_DEFS = {
   work: {
     name: "Work", icon: "⚒",
     desc: "The world demands its portion.",
-    unlockedAtStart: true,
+    unlockedAtStart: true, slots: 3,
   },
   study: {
     name: "Study", icon: "📖",
     desc: "Understanding is not free. But it is for sale.",
-    unlockedAtStart: true,
+    unlockedAtStart: true, slots: 3,
   },
   dream: {
     name: "Dream", icon: "🌙",
     desc: "Every night, the door.",
-    unlockedAtStart: true,
+    unlockedAtStart: true, slots: 3,
   },
   rite: {
     name: "Rite", icon: "🕯",
     desc: "Some words change the weather of the world.",
-    unlockedAtStart: false,
+    unlockedAtStart: false, slots: 4,
   },
 };
 
@@ -154,7 +212,8 @@ const VERB_DEFS = {
 // Matching: highest `priority` recipe on the verb whose `requires`
 // (summed aspect totals across slotted cards) are all met, and whose
 // `maxAspects` (if any) are not exceeded, wins.
-// `consumes` counts CARDS bearing an aspect (not aspect totals).
+// `consumes` counts CARDS bearing an aspect (not aspect totals),
+// and consumes up to that many of the slotted cards.
 // `once: true` recipes fire a single time per run, then step aside.
 // `grimoire` is the line recorded forever in the player's Grimoire.
 // ------------------------------------------------------------
@@ -197,9 +256,9 @@ const RECIPES = [
     id: "work_preach_flame", verb: "work", priority: 4, duration: 15,
     name: "Preach What You Have Learned",
     requires: { fervor: 1, flame: 1 },
-    consumes: { fervor: 1 }, produces: ["funds", "listener"],
-    text: "This time the words have heat in them, and the crowd feels it. Most hurry on. One does not.",
-    grimoire: "Preach with Flame-lore in hand, and someone will stay to listen.",
+    consumes: { fervor: 1 }, produces: ["funds", "listener", "suspicion"],
+    text: "This time the words have heat in them, and the crowd feels it. Most hurry on. One does not. And somewhere at the back, a grey hat turns your way.",
+    grimoire: "Preach with Flame-lore in hand, and someone will stay to listen. Someone else will take notes.",
   },
   {
     id: "work_devotee", verb: "work", priority: 3, duration: 20,
@@ -234,6 +293,22 @@ const RECIPES = [
     consumes: { funds: 2 }, produces: ["pamphlet"],
     text: "The pamphlet-seller on Lantern Row keeps the strange ones under the counter. He has more. He always has more.",
     grimoire: "Two Coins at Study buys another Text.",
+  },
+  {
+    id: "study_floorboards", verb: "study", priority: 6, duration: 15,
+    name: "The Other Stock",
+    requires: { offer: 1, funds: 2 },
+    consumes: { offer: 1, funds: 2 }, produces: ["kindled_heart"],
+    text: "He locks the shop door first. Under the floorboards, wrapped in oilcloth against the damp: a book that seems faintly, pleasantly warm, like a loaf. 'You didn't buy this here. This shop doesn't exist. Good day.'",
+    grimoire: "The pamphlet-seller's OTHER stock: two Coins, and the Offer, for a true Tome.",
+  },
+  {
+    id: "study_tome", verb: "study", priority: 5, duration: 18,
+    name: "Read What Was Buried",
+    requires: { tome: 1 },
+    consumes: { tome: 1 }, produces: ["lore_flame2", "wonder", "suspicion"],
+    text: "It is everything the pamphlets were trying to misremember. You read it in one sitting, curtains drawn — but a lit window at three in the morning is its own kind of confession.",
+    grimoire: "A true Tome yields refined Flame-lore at a single stroke — and lit windows are noticed.",
   },
   {
     id: "study_flame_combine", verb: "study", priority: 5, duration: 15,
@@ -342,6 +417,22 @@ const RECIPES = [
     text: "Wine the colour of garnets, music, a stranger's laughter, the city's ten thousand lamps. You wake poorer and more alive.",
     grimoire: "Two Coins, spent on a splendid night, become Fervour and Wonder.",
   },
+  {
+    id: "dream_widow_funds", verb: "dream", priority: 5, duration: 15,
+    name: "Tea With the Widow",
+    requires: { widow: 1, funds: 2 },
+    consumes: { funds: 2 }, produces: ["lore_veil1"],
+    text: "Her parlour exists only while you are asleep, which does wonders for the rent. She sells what she remembers, and she remembers what the veil is for. The tea is grey, and excellent.",
+    grimoire: "The Widow, visited in Dream with two Coins, sells Veil-lore.",
+  },
+  {
+    id: "dream_widow_story", verb: "dream", priority: 5, duration: 18,
+    name: "A Memory for a Memory",
+    requires: { widow: 1, story: 1 },
+    consumes: { story: 1 }, produces: ["lore_veil2", "wonder"],
+    text: "'Stories are the only coin that doesn't clip,' she says, and lifts her veil just enough to take yours. What she gives you in exchange is older, and colder, and true. You will miss the memory you paid. You will not remember why.",
+    grimoire: "The Widow trades deep Veil-lore for a Story. The rate is fair. The rate is the trap.",
+  },
 
   // ---------------- RITE ----------------
   {
@@ -361,13 +452,53 @@ const RECIPES = [
     grimoire: "A Listener, shown Flame-lore at Rite, becomes a Devotee.",
   },
   {
+    id: "rite_veiling", verb: "rite", priority: 3, duration: 12,
+    name: "The Veiling",
+    requires: { veil: 1, suspicion: 1 },
+    consumes: { suspicion: 3 }, produces: [],
+    text: "You fold the district's attention the way the Widow folds her veil. For a while, eyes slide off your door like rain off glass. The grey hats read their newspapers and remember nothing.",
+    grimoire: "THE VEILING: Veil-lore at Rite folds away Suspicion — up to three eyes at once.",
+  },
+  {
     id: "rite_kindle", verb: "rite", priority: 6, duration: 25,
     name: "The Kindling Rite",
     requires: { spark: 1, flame: 2, fervor: 1 },
     maxAspects: { spark: 1 },
-    consumes: { spark: 1, lore: 1, fervor: 1 }, produces: ["spark2"],
-    text: "You feed it the refined flame, and your own insistence, and it WAKES — not with a roar but with a long, satisfied exhalation, like someone returning to a beloved house. The warmth under your sternum is no longer sleeping.",
-    grimoire: "THE KINDLING RITE: the Spark, fed refined Flame-lore and Fervour, wakes.",
+    consumes: { spark: 1, lore: 1, fervor: 1 }, produces: ["spark2", "suspicion"],
+    text: "You feed it the refined flame, and your own insistence, and it WAKES — not with a roar but with a long, satisfied exhalation, like someone returning to a beloved house. The warmth under your sternum is no longer sleeping. The neighbours heard the chanting.",
+    grimoire: "THE KINDLING RITE: the Spark, fed refined Flame-lore and Fervour, wakes. Loudly.",
+  },
+  {
+    id: "rite_hollow", verb: "rite", priority: 5, duration: 20,
+    name: "Speak the Name Under the World",
+    requires: { invitation: 1, dread: 1 },
+    consumes: { invitation: 1, dread: 1 }, produces: ["mother_hollows", "wonder", "dread"],
+    text: "You bring what frightens you, as instructed, and speak the name downward, into the floor. The candle-flames bend the wrong way. Where the circle's centre was, there is now a patient, queenly absence. 'Little ember-bearer,' she says. 'Let us do business.'",
+    grimoire: "The Name Under the World, spoken at Rite with Dread in hand, summons the MOTHER OF HOLLOWS.",
+  },
+  {
+    id: "rite_mother_story", verb: "rite", priority: 4, duration: 15,
+    name: "Feed Her a Memory",
+    requires: { hollows: 1, story: 1 },
+    consumes: { story: 1 }, produces: ["funds", "funds", "funds", "dread"],
+    text: "She eats the memory delicately, the way a duchess eats a quail. She pays in coin found in drowned men's pockets. It spends like any other. That is the worst thing about it.",
+    grimoire: "The Mother of Hollows buys Stories: three Coins each, and a little more Dread.",
+  },
+  {
+    id: "rite_mother_clarity", verb: "rite", priority: 4, duration: 15,
+    name: "Sell Her the Cold Room",
+    requires: { hollows: 1, clarity: 1 },
+    consumes: { clarity: 1 }, produces: ["fervor", "fervor", "dread"],
+    text: "She takes the cold, well-lit room in your mind and fills it with singing. You are warmer now. You are so much warmer now. It is harder to think, and easier to want.",
+    grimoire: "The Mother of Hollows trades Clarity for double Fervour — and a little more Dread.",
+  },
+  {
+    id: "rite_bargain_end", verb: "rite", priority: 8, duration: 30,
+    name: "The Hollow Bargain",
+    requires: { hollows: 1, spark: 2 },
+    consumes: { spark: 1 }, produces: ["hollow_pact"],
+    text: "'Name your price,' she says, and the terrible thing is that she means it. You lift the woken ember out of your chest — it comes easily, it always came easily, that was the secret — and set it in the absence where her heart should be. She fills, like a lamp.",
+    grimoire: "THE HOLLOW BARGAIN: the woken Spark may be sold to the Mother of Hollows. Once.",
   },
   {
     id: "rite_crown", verb: "rite", priority: 7, duration: 30,
@@ -376,6 +507,75 @@ const RECIPES = [
     consumes: { spark: 1, lore: 1, wonder: 1 }, produces: ["spark3"],
     text: "Behind the veil, where the other Powers cannot yet see, you set the woken ember in the socket of your heart and speak the coronation the dead god never finished. Somewhere above, something vast turns its head. Too late.",
     grimoire: "THE CROWNING: the woken Spark, veiled from watching Powers and fed Wonder, is crowned.",
+  },
+];
+
+// ------------------------------------------------------------
+// EVENTS — the city acts on its own. Checked while time runs and
+// whenever results are collected; each fires once unless `repeatable`.
+// Conditions (all must hold): minElapsed (unpaused seconds this run),
+// usedOnce (a once-recipe has fired), cardExists, counterAtLeast
+// (recipe completions), aspectAtLeast (tray totals).
+// Effects: spawn, removeByAspect (tray only), clearDef (tray only), toast.
+// kind: "omen" (violet, soft chime) or "dark" (low chime).
+// ------------------------------------------------------------
+
+const EVENTS = [
+  {
+    id: "ev_watcher",
+    when: { aspectAtLeast: { suspicion: 2 } },
+    effects: {
+      spawn: ["watcher"],
+      toast: "A man in a grey hat has taken up residence at the corner of your street. He is very good at reading the same page.",
+      kind: "omen",
+    },
+  },
+  {
+    id: "ev_knock", repeatable: true,
+    when: { aspectAtLeast: { suspicion: 4 } },
+    effects: {
+      removeByAspect: { lore: 1 },
+      clearDef: "suspicion",
+      spawn: ["dread"],
+      toast: "THE KNOCK AT THE DOOR. Three raps, unhurried, official. The Ashen Order is polite, thorough, and gone within the hour — along with something you had written down.",
+      kind: "dark",
+    },
+  },
+  {
+    id: "ev_widow_intro",
+    when: { usedOnce: "study_spark_first", minElapsed: 90 },
+    effects: {
+      spawn: ["widow_card"],
+      toast: "A mourning-card has been slipped under your door. Ash-grey paper, violet ink, an address on Lantern Row that is only legible at night.",
+      kind: "omen",
+    },
+  },
+  {
+    id: "ev_widow_kindle",
+    when: { usedOnce: "rite_kindle", cardExists: "widow_card" },
+    effects: {
+      spawn: ["widow_warning", "suspicion"],
+      toast: "A note in violet ink, delivered by no one: the Widow felt what you did.",
+      kind: "omen",
+    },
+  },
+  {
+    id: "ev_hollow_name",
+    when: { cardExists: "lore_veil2" },
+    effects: {
+      spawn: ["hollow_invitation"],
+      toast: "As you shelve the deeper lore, you notice writing on the underside of it — the way an address is on the underside of an envelope.",
+      kind: "omen",
+    },
+  },
+  {
+    id: "ev_floorboards",
+    when: { counterAtLeast: { recipe: "study_buy", n: 3 } },
+    effects: {
+      spawn: ["floorboard_offer"],
+      toast: "The pamphlet-seller has begun to greet you by name. Today, he does not ring up your purchase right away.",
+      kind: "omen",
+    },
   },
 ];
 
@@ -390,12 +590,17 @@ const DESPAIR_LIMIT = 3;
 const ENDINGS = {
   victory: {
     title: "THE EMBER CROWNED",
-    text: "You are not a god. You are what comes after gods — something small and warm and self-made, wearing a crown of your own kindling. The city below lights its lamps, not knowing who it lights them for now. (This is the end of the prototype. Thank you for playing.)",
+    text: "You are not a god. You are what comes after gods — something small and warm and self-made, wearing a crown of your own kindling. The city below lights its lamps, not knowing who it lights them for now.",
     button: "Begin a New Story",
   },
   despair: {
     title: "THE LONG DARK",
     text: "The lamps went out one by one, and one by one you forgot that you had ever lit them. The ember passes to other hands — but what you LEARNED does not. Your Grimoire remembers, even here.",
     button: "Begin Again, Remembering",
+  },
+  bargain: {
+    title: "THE HOLLOW BARGAIN",
+    text: "She keeps her word: you have everything you asked for, and you will want none of it for long. Some nights you feel warmth from far below, like a lamp in a deep house, and you think — that was mine, once. I carried that. The thought is almost enough. The Mother of Hollows pays fairly. That was always the trap.",
+    button: "Begin Again, Lighter",
   },
 };

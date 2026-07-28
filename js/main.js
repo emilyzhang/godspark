@@ -7,8 +7,13 @@
   on("change", render);
   on("toast", showToast);
   on("autopause", (verbId) => {
-    chime();
-    if (verbId) selectedVerbId = verbId; // jump the panel to the finished action
+    // A finished action gets the bright chime; omens and menaces toll low.
+    if (verbId) {
+      chime();
+      selectedVerbId = verbId; // jump the panel to the finished action
+    } else {
+      darkChime();
+    }
     render();
   });
   on("ending", (kind) => {
@@ -52,6 +57,7 @@
 
   load();
   render();
+  startEmbers();
   setInterval(tick, TICK_MS);
   setInterval(save, 5000); // autosave
 })();

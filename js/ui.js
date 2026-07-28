@@ -1,34 +1,12 @@
 // ============================================================
-// GODSPARK — UI: rendering, drag & drop, panels, sound.
+// GODSPARK — UI: rendering, drag & drop, panels.
 // Reads engine state, calls engine functions, never mutates state directly.
+// Sound & particles live in fx.js.
 // ============================================================
 
 let selectedVerbId = null;
 
 const $ = (sel) => document.querySelector(sel);
-
-// ---- tiny chime (Web Audio, no assets, no network) -------------------------
-
-let audioCtx = null;
-function chime() {
-  if (state.muted) return;
-  try {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const now = audioCtx.currentTime;
-    [523.25, 783.99].forEach((freq, i) => {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = "sine";
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0.0001, now + i * 0.12);
-      gain.gain.exponentialRampToValueAtTime(0.08, now + i * 0.12 + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.12 + 0.6);
-      osc.connect(gain).connect(audioCtx.destination);
-      osc.start(now + i * 0.12);
-      osc.stop(now + i * 0.12 + 0.7);
-    });
-  } catch (e) { /* audio unavailable; play on in silence */ }
-}
 
 // ---- small builders --------------------------------------------------------
 
@@ -48,12 +26,40 @@ function aspectChips(aspects) {
   return wrap;
 }
 
+// The small colored gems on a card's face: its aspects, readable at a glance.
+function aspectGems(aspects) {
+  const row = document.createElement("div");
+  row.className = "gem-row";
+  for (const [aspect, n] of Object.entries(aspects)) {
+    const info = ASPECTS[aspect];
+    if (!info) continue;
+    const gem = document.createElement("span");
+    gem.className = "gem";
+    gem.style.color = info.color;
+    gem.textContent = info.icon + (n > 1 ? n : "");
+    gem.title = `${info.label}${n > 1 ? " " + n : ""}`;
+    row.appendChild(gem);
+  }
+  return row;
+}
+
+function dominantAspectColor(def) {
+  const first = Object.keys(def.aspects)[0];
+  return (first && ASPECTS[first]) ? ASPECTS[first].color : "#3a3145";
+}
+
 function cardEl(card, { draggable = true } = {}) {
   const def = CARD_DEFS[card.defId];
   const el = document.createElement("div");
   el.className = "card";
+  if (def.menace) el.classList.add("menace");
   el.dataset.uid = card.uid;
   el.draggable = draggable;
+  el.style.setProperty("--aspect-color", dominantAspectColor(def));
+
+  const ribbon = document.createElement("div");
+  ribbon.className = "card-ribbon";
+  el.appendChild(ribbon);
 
   const icon = document.createElement("div");
   icon.className = "card-icon";
@@ -65,6 +71,7 @@ function cardEl(card, { draggable = true } = {}) {
 
   el.appendChild(icon);
   el.appendChild(name);
+  el.appendChild(aspectGems(def.aspects));
 
   if (card.decay !== null && !card.heldBy) {
     const decay = document.createElement("div");
@@ -90,8 +97,12 @@ function cardEl(card, { draggable = true } = {}) {
       e.dataTransfer.setData("text/plain", String(card.uid));
       e.dataTransfer.effectAllowed = "move";
       el.classList.add("dragging");
+      document.body.classList.add("dragging-card");
     });
-    el.addEventListener("dragend", () => el.classList.remove("dragging"));
+    el.addEventListener("dragend", () => {
+      el.classList.remove("dragging");
+      document.body.classList.remove("dragging-card");
+    });
     el.addEventListener("dblclick", () => {
       if (selectedVerbId === null) return;
       const verb = verbState(selectedVerbId);
@@ -173,6 +184,7 @@ function slotEl(verbId, slotIndex) {
     }
   } else {
     slot.textContent = "＋";
+    slot.classList.add("open");
   }
 
   slot.addEventListener("dragover", (e) => {
@@ -184,10 +196,40 @@ function slotEl(verbId, slotIndex) {
   slot.addEventListener("drop", (e) => {
     e.preventDefault();
     slot.classList.remove("drop-ok");
+    document.body.classList.remove("dragging-card");
     const dropped = parseInt(e.dataTransfer.getData("text/plain"), 10);
     if (!Number.isNaN(dropped)) slotCard(verbId, slotIndex, dropped);
   });
   return slot;
+}
+
+// Discovered recipes for this verb, with their ingredient aspects shown:
+// the transparency you earn in the Grimoire, laid out at the table.
+function knownWorkingsEl(verbId) {
+  const known = grimoire
+    .filter((e) => e.verb === verbId)
+    .map((e) => RECIPES.find((r) => r.id === e.recipeId))
+    .filter(Boolean)
+    .filter((r) => Object.keys(r.requires).length > 0);
+  if (known.length === 0) return null;
+
+  const wrap = document.createElement("div");
+  wrap.className = "known-workings";
+  const label = document.createElement("h4");
+  label.textContent = "❦ workings you know";
+  wrap.appendChild(label);
+
+  for (const recipe of known) {
+    const row = document.createElement("div");
+    row.className = "working-row";
+    const name = document.createElement("span");
+    name.className = "working-name";
+    name.textContent = recipe.name;
+    row.appendChild(name);
+    row.appendChild(aspectChips(recipe.requires));
+    wrap.appendChild(row);
+  }
+  return wrap;
 }
 
 function renderVerbPanel() {
@@ -254,7 +296,7 @@ function renderVerbPanel() {
 
   const slots = document.createElement("div");
   slots.className = "slot-row";
-  for (let i = 0; i < 3; i++) slots.appendChild(slotEl(verbId, i));
+  for (let i = 0; i < verb.slots.length; i++) slots.appendChild(slotEl(verbId, i));
   panel.appendChild(slots);
 
   const footer = document.createElement("div");
@@ -289,6 +331,9 @@ function renderVerbPanel() {
     footer.appendChild(start);
   }
   panel.appendChild(footer);
+
+  const workings = knownWorkingsEl(verbId);
+  if (workings) panel.appendChild(workings);
 }
 
 // ---- tray ------------------------------------------------------------------
@@ -306,7 +351,20 @@ function renderTray() {
   }
   // stable, grouped display: sort by definition id then uid
   cards.sort((a, b) => a.defId.localeCompare(b.defId) || a.uid - b.uid);
-  for (const card of cards) tray.appendChild(cardEl(card));
+
+  // When a verb lies open and idle, light up the cards that would matter to it.
+  const verbOpen = selectedVerbId !== null
+    && !verbState(selectedVerbId).running
+    && !verbState(selectedVerbId).complete;
+
+  for (const card of cards) {
+    const el = cardEl(card);
+    if (verbOpen) {
+      if (cardChangesOutcome(selectedVerbId, card)) el.classList.add("useful");
+      else el.classList.add("inert");
+    }
+    tray.appendChild(el);
+  }
 }
 
 // ---- grimoire --------------------------------------------------------------
@@ -336,6 +394,10 @@ function renderGrimoire() {
       text.textContent = entry.text;
       div.appendChild(name);
       div.appendChild(text);
+      const recipe = RECIPES.find((r) => r.id === entry.recipeId);
+      if (recipe && Object.keys(recipe.requires).length > 0) {
+        div.appendChild(aspectChips(recipe.requires));
+      }
       container.appendChild(div);
     }
   }
@@ -344,16 +406,17 @@ function renderGrimoire() {
 // ---- toasts, pause banner, overlay -----------------------------------------
 
 function showToast(message) {
+  const { text, kind } = typeof message === "string" ? { text: message, kind: null } : message;
   const toasts = $("#toasts");
   const toast = document.createElement("div");
-  toast.className = "toast";
-  toast.textContent = message;
+  toast.className = "toast" + (kind ? ` toast-${kind}` : "");
+  toast.textContent = text;
   toasts.appendChild(toast);
   setTimeout(() => toast.classList.add("visible"), 20);
   setTimeout(() => {
     toast.classList.remove("visible");
     setTimeout(() => toast.remove(), 600);
-  }, 6000);
+  }, kind ? 9000 : 6000);
 }
 
 function renderPauseState() {

@@ -1,6 +1,6 @@
 // ============================================================
 // GODSPARK — engine: game state, ticking, recipe matching,
-// completion, menace fusion, endings, save/load.
+// completion, events, menace fusion, endings, save/load.
 // No DOM access here; ui.js observes state and renders it.
 // ============================================================
 
@@ -12,12 +12,15 @@ const TICK_MS = 100;
 const state = {
   cards: [],        // { uid, defId, decay (seconds left, or null), heldBy (verbId or null) }
   nextUid: 1,
-  verbs: {},        // verbId -> { unlocked, slots: [uid|null x3], running, complete }
+  verbs: {},        // verbId -> { unlocked, slots: [uid|null, ...], running, complete }
                     // running:  { recipeId, remaining, total }
                     // complete: { recipeId, producedDefIds, returnedUids }
   usedOnce: {},     // recipeId -> true
+  counters: {},     // recipeId -> completion count this run
+  eventsFired: {},  // eventId -> true
+  elapsed: 0,       // unpaused seconds this run
   paused: false,
-  ended: null,      // null | "victory" | "despair"
+  ended: null,      // null | "victory" | "despair" | "bargain"
   muted: false,
 };
 
@@ -72,7 +75,7 @@ function aspectTotals(cards) {
 
 // ---- recipe matching -------------------------------------------------------
 
-function matchRecipe(verbId, cards) {
+function matchRecipeForCards(verbId, cards) {
   const totals = aspectTotals(cards);
   const candidates = RECIPES
     .filter((r) => r.verb === verbId)
@@ -91,6 +94,10 @@ function matchRecipe(verbId, cards) {
     return recipe;
   }
   return null;
+}
+
+function matchRecipe(verbId, cards) {
+  return matchRecipeForCards(verbId, cards);
 }
 
 // ---- slotting --------------------------------------------------------------
@@ -135,6 +142,18 @@ function previewRecipe(verbId) {
   return matchRecipe(verbId, slottedCards(verbId));
 }
 
+// Would adding this tray card to the verb's current slots change the outcome?
+// Powers the gold "this card matters here" glow in the tray.
+function cardChangesOutcome(verbId, card) {
+  const verb = verbState(verbId);
+  if (verb.running || verb.complete) return false;
+  if (!verb.slots.includes(null)) return false;
+  const current = matchRecipe(verbId, slottedCards(verbId));
+  const withCard = matchRecipe(verbId, [...slottedCards(verbId), card]);
+  if (!withCard) return false;
+  return !current || withCard.id !== current.id;
+}
+
 // ---- running verbs ---------------------------------------------------------
 
 function startVerb(verbId) {
@@ -170,10 +189,11 @@ function finishVerb(verbId) {
 
   const returnedUids = slotted.map((c) => c.uid).filter((uid) => !consumedUids.has(uid));
 
-  verb.slots = [null, null, null];
+  verb.slots = verb.slots.map(() => null);
   verb.complete = { recipeId: recipe.id, producedDefIds: [...recipe.produces], returnedUids };
 
   if (recipe.once) state.usedOnce[recipe.id] = true;
+  state.counters[recipe.id] = (state.counters[recipe.id] || 0) + 1;
   if (recipe.unlocksVerb) {
     state.verbs[recipe.unlocksVerb].unlocked = true;
     emit("toast", `A new action is available: ${VERB_DEFS[recipe.unlocksVerb].name.toUpperCase()}.`);
@@ -200,6 +220,7 @@ function collectVerb(verbId) {
 
   verb.complete = null;
   checkMenaceFusion();
+  checkEvents();
   checkEndings();
   emit("change");
   save();
@@ -215,6 +236,61 @@ function recordInGrimoire(recipe) {
   emit("toast", `Recorded in your Grimoire: “${recipe.name}”.`);
 }
 
+// ---- events: the city acts on its own --------------------------------------
+
+function eventConditionMet(ev) {
+  const w = ev.when;
+  if (w.minElapsed != null && state.elapsed < w.minElapsed) return false;
+  if (w.usedOnce && !state.usedOnce[w.usedOnce]) return false;
+  if (w.cardExists && !state.cards.some((c) => c.defId === w.cardExists)) return false;
+  if (w.counterAtLeast && (state.counters[w.counterAtLeast.recipe] || 0) < w.counterAtLeast.n) return false;
+  if (w.aspectAtLeast) {
+    const totals = aspectTotals(trayCards());
+    for (const [aspect, n] of Object.entries(w.aspectAtLeast)) {
+      if ((totals[aspect] || 0) < n) return false;
+    }
+  }
+  return true;
+}
+
+function fireEvent(ev) {
+  state.eventsFired[ev.id] = true;
+  const fx = ev.effects;
+
+  if (fx.removeByAspect) {
+    for (const [aspect, count] of Object.entries(fx.removeByAspect)) {
+      let needed = count;
+      for (const card of trayCards()) {
+        if (needed === 0) break;
+        if ((defOf(card).aspects[aspect] || 0) > 0) {
+          removeCard(card.uid);
+          needed--;
+        }
+      }
+    }
+  }
+  if (fx.clearDef) {
+    for (const card of trayCards().filter((c) => c.defId === fx.clearDef)) {
+      removeCard(card.uid);
+    }
+  }
+  if (fx.spawn) for (const defId of fx.spawn) spawnCard(defId);
+
+  state.paused = true;
+  if (fx.toast) emit("toast", { text: fx.toast, kind: fx.kind || "omen" });
+  emit("autopause", null);
+  emit("change");
+  save();
+}
+
+function checkEvents() {
+  if (state.ended) return;
+  for (const ev of EVENTS) {
+    if (state.eventsFired[ev.id] && !ev.repeatable) continue;
+    if (eventConditionMet(ev)) fireEvent(ev);
+  }
+}
+
 // ---- menace & endings ------------------------------------------------------
 
 function checkMenaceFusion() {
@@ -222,7 +298,7 @@ function checkMenaceFusion() {
   while (dreads.length >= DREAD_FUSE_COUNT) {
     dreads.slice(0, DREAD_FUSE_COUNT).forEach((c) => removeCard(c.uid));
     spawnCard("despair");
-    emit("toast", "Your dreads gather, and fuse, and go quiet. That is worse. DESPAIR settles in.");
+    emit("toast", { text: "Your dreads gather, and fuse, and go quiet. That is worse. DESPAIR settles in.", kind: "dark" });
     state.paused = true;
     emit("autopause", null);
     dreads = trayCards().filter((c) => c.defId === "dread");
@@ -231,7 +307,11 @@ function checkMenaceFusion() {
 
 function checkEndings() {
   if (state.ended) return;
-  if (state.cards.some((c) => c.defId === "spark3")) {
+  if (state.cards.some((c) => c.defId === "hollow_pact")) {
+    state.ended = "bargain";
+    state.paused = true;
+    emit("ending", "bargain");
+  } else if (state.cards.some((c) => c.defId === "spark3")) {
     state.ended = "victory";
     state.paused = true;
     emit("ending", "victory");
@@ -247,6 +327,7 @@ function checkEndings() {
 function tick() {
   if (state.paused || state.ended) return;
   const dt = TICK_MS / 1000;
+  state.elapsed += dt;
   let changed = false;
 
   for (const [verbId, verb] of Object.entries(state.verbs)) {
@@ -270,6 +351,7 @@ function tick() {
     }
   }
 
+  checkEvents();
   if (changed) emit("change");
 }
 
@@ -286,6 +368,9 @@ function save() {
     nextUid: state.nextUid,
     verbs: state.verbs,
     usedOnce: state.usedOnce,
+    counters: state.counters,
+    eventsFired: state.eventsFired,
+    elapsed: state.elapsed,
     ended: state.ended,
     muted: state.muted,
   };
@@ -302,7 +387,12 @@ function loadGrimoire() {
 function freshVerbs() {
   const verbs = {};
   for (const [id, def] of Object.entries(VERB_DEFS)) {
-    verbs[id] = { unlocked: def.unlockedAtStart, slots: [null, null, null], running: null, complete: null };
+    verbs[id] = {
+      unlocked: def.unlockedAtStart,
+      slots: new Array(def.slots).fill(null),
+      running: null,
+      complete: null,
+    };
   }
   return verbs;
 }
@@ -312,11 +402,33 @@ function newRun() {
   state.nextUid = 1;
   state.verbs = freshVerbs();
   state.usedOnce = {};
+  state.counters = {};
+  state.eventsFired = {};
+  state.elapsed = 0;
   state.ended = null;
   state.paused = false;
   for (const defId of STARTING_CARDS) spawnCard(defId);
   save();
   emit("change");
+}
+
+// Older saves may predate verbs or slot counts added since; patch them up.
+function migrate(snapshot) {
+  for (const [id, def] of Object.entries(VERB_DEFS)) {
+    if (!snapshot.verbs[id]) {
+      snapshot.verbs[id] = {
+        unlocked: def.unlockedAtStart, slots: new Array(def.slots).fill(null),
+        running: null, complete: null,
+      };
+    }
+    const verb = snapshot.verbs[id];
+    while (verb.slots.length < def.slots) verb.slots.push(null);
+  }
+  snapshot.usedOnce ||= {};
+  snapshot.counters ||= {};
+  snapshot.eventsFired ||= {};
+  snapshot.elapsed ||= 0;
+  return snapshot;
 }
 
 function load() {
@@ -325,11 +437,14 @@ function load() {
   try { raw = localStorage.getItem(SAVE_KEY); } catch (e) { /* storage unavailable */ }
   if (!raw) { newRun(); return; }
   try {
-    const snapshot = JSON.parse(raw);
+    const snapshot = migrate(JSON.parse(raw));
     state.cards = snapshot.cards;
     state.nextUid = snapshot.nextUid;
     state.verbs = snapshot.verbs;
-    state.usedOnce = snapshot.usedOnce || {};
+    state.usedOnce = snapshot.usedOnce;
+    state.counters = snapshot.counters;
+    state.eventsFired = snapshot.eventsFired;
+    state.elapsed = snapshot.elapsed;
     state.ended = snapshot.ended || null;
     state.muted = snapshot.muted || false;
     state.paused = true; // load paused so returning players can look around

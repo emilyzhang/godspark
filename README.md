@@ -4,6 +4,8 @@
 
 A [Cultist Simulator](https://weatherfactory.biz/cultist-simulator/)-inspired card-and-verb game: drag cards onto actions, let timers run, and discover recipes through experimentation. You carry the ember of a murdered god through a gaslit city — work, study, and dream your way toward crowning it before the creeping Dread snuffs you out.
 
+The city acts on its own: public acts breed **Suspicion**, and the grey-hatted **Ashen Order** comes knocking when it gathers. The **Widow of Lantern Row** — who attended the same funeral you did — trades in dreams. And under the deeper lore there is a name, and the name is the **Mother of Hollows**, and she pays fairly, which is the trap. Three endings.
+
 ## Playing
 
 Open `index.html` in a browser. That's it.
@@ -17,10 +19,11 @@ python3 -m http.server 8000
 
 - Click a verb tile (Work / Study / Dream / …) to open it.
 - Drag cards into its slots — or double-click a card to slot it.
+- With a verb open, tray cards that would **change the outcome glow gold**; irrelevant ones dim.
 - The panel tells you what recipe the combination would begin. Hit **Begin**.
 - The game **auto-pauses** whenever an action finishes. Space toggles pause.
-- Hover a card for its description and aspects.
-- The **Grimoire** (📖) records every recipe you discover — permanently. It survives death.
+- Hover a card for its description; every card wears its aspect gems on its face.
+- The **Grimoire** (📖) records every recipe you discover — permanently. It survives death. Recipes you know also appear in the verb panel as "workings you know," ingredients included.
 
 Progress autosaves to your browser's localStorage.
 
@@ -38,9 +41,10 @@ Zero dependencies, deliberately: hand-written HTML/CSS/JS, no npm, no CDNs, no n
 
 | File | Role |
 |---|---|
-| `js/data.js` | All game content — cards, verbs, recipes, endings |
-| `js/engine.js` | Game state, clock, recipe matching, save/load (no DOM) |
-| `js/ui.js` | Rendering, drag & drop, panels, sound |
+| `js/data.js` | All game content — cards, verbs, recipes, events, endings |
+| `js/engine.js` | Game state, clock, recipe matching, events, save/load (no DOM) |
+| `js/ui.js` | Rendering, drag & drop, panels |
+| `js/fx.js` | Synthesized sound (reverb included) and ambient ember particles |
 | `js/main.js` | Bootstrap wiring |
 | `style.css` | Gaslit occult styling |
 
