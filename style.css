@@ -50,28 +50,29 @@ body {
 #topbar, main { position: relative; z-index: 1; }
 
 #aurora { overflow: hidden; }
+/* no blur filter here: the radial gradients are already soft, and large
+   blurs can leave rectangular banding seams in some browsers */
 .aurora-blob {
   position: absolute;
   width: 70vmax;
   height: 70vmax;
   border-radius: 50%;
-  filter: blur(70px);
   mix-blend-mode: screen;
   opacity: 0.6;
 }
 .aurora-1 {
   top: -30vmax; left: -20vmax;
-  background: radial-gradient(circle, rgba(143, 127, 212, 0.22) 0%, transparent 65%);
+  background: radial-gradient(circle, rgba(143, 127, 212, 0.2) 0%, rgba(143, 127, 212, 0.07) 40%, transparent 68%);
   animation: drift-1 67s ease-in-out infinite alternate;
 }
 .aurora-2 {
   top: -10vmax; right: -25vmax;
-  background: radial-gradient(circle, rgba(74, 143, 131, 0.18) 0%, transparent 65%);
+  background: radial-gradient(circle, rgba(74, 143, 131, 0.16) 0%, rgba(74, 143, 131, 0.06) 40%, transparent 68%);
   animation: drift-2 89s ease-in-out infinite alternate;
 }
 .aurora-3 {
   bottom: -35vmax; left: 15vmax;
-  background: radial-gradient(circle, rgba(201, 168, 76, 0.13) 0%, transparent 65%);
+  background: radial-gradient(circle, rgba(201, 168, 76, 0.12) 0%, rgba(201, 168, 76, 0.04) 40%, transparent 68%);
   animation: drift-3 103s ease-in-out infinite alternate;
 }
 @keyframes drift-1 { to { transform: translate(14vmax, 10vmax) scale(1.25); } }
@@ -127,8 +128,8 @@ body {
 /* a patient moon, hazed with its own halo */
 #moon {
   inset: auto;
-  top: 6%;
-  right: 7%;
+  top: 6.5rem; /* clear of the header bar and its buttons */
+  right: 4.5%;
   width: 6.5rem;
   height: 6.5rem;
   border-radius: 50%;
@@ -178,8 +179,17 @@ button.danger:hover { border-color: var(--danger); color: #c98a8a; }
   flex-wrap: wrap;
   gap: 0.75rem;
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--line);
   background: linear-gradient(180deg, rgba(18, 14, 24, 0.4), transparent);
+}
+/* the header's rule fades out before the page edges, so it never
+   slices across the moon or the skyline behind it */
+#topbar::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent, var(--line) 22%, var(--line) 78%, transparent);
 }
 #topbar h1 {
   font-family: var(--font-display);
