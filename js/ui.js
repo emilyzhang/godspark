@@ -486,6 +486,7 @@ function buttonContent(btn, iconName, label) {
 
 function renderPauseState() {
   $("#paused-banner").classList.toggle("hidden", !state.paused || !!state.ended);
+  document.body.classList.toggle("is-paused", state.paused);
   buttonContent($("#btn-pause"), state.paused ? "play" : "pause", state.paused ? "Resume" : "Pause");
   buttonContent($("#btn-mute"), state.muted ? "bellOff" : "bell", "");
 }

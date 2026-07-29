@@ -676,21 +676,33 @@ body.dragging-card .slot.open {
   box-shadow: 0 0 18px rgba(226, 112, 58, 0.25);
 }
 
+/* pause is signalled quietly: a whisper under the header, and the whole
+   dreamscape holding its breath — never a box over the play area */
 #paused-banner {
   font-family: var(--font-display);
+  text-transform: uppercase;
   position: fixed;
-  top: 50%;
+  top: 4.4rem;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
   letter-spacing: 0.5em;
+  padding-left: 0.5em; /* optically recenter the letterspaced caps */
   color: var(--gold);
-  font-size: 1.1rem;
-  background: rgba(20, 17, 26, 0.85);
-  border: 1px solid var(--gold);
-  border-radius: 8px;
-  padding: 0.7rem 2rem 0.7rem 2.5rem;
+  font-size: 0.72rem;
+  opacity: 0.85;
+  text-shadow: 0 0 12px rgba(201, 168, 76, 0.5);
   pointer-events: none;
   z-index: 40;
+}
+
+body.is-paused .aurora-blob,
+body.is-paused .veil-turn,
+body.is-paused .win-flicker,
+body.is-paused .sigil-ring,
+body.is-paused .twinkle,
+body.is-paused .card::after,
+body.is-paused .card.radiant .card-art {
+  animation-play-state: paused;
 }
 
 #overlay {

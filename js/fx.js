@@ -118,13 +118,15 @@ function startEmbers() {
   }
 
   let last = performance.now();
+  let animClock = 0; // advances only while unpaused: paused, the sky holds its breath
   function frame(now) {
     const dt = Math.min((now - last) / 1000, 0.1);
     last = now;
+    const held = typeof state !== "undefined" && state.paused;
+    if (!held) animClock += dt;
     ctx.clearRect(0, 0, w, h);
-    const t = now / 1000;
     for (const s of stars) {
-      const twinkle = 0.5 + 0.5 * Math.sin(t * s.speed + s.phase);
+      const twinkle = 0.5 + 0.5 * Math.sin(animClock * s.speed + s.phase);
       ctx.globalAlpha = s.base * twinkle;
       ctx.fillStyle = s.warm ? "#e9d98a" : "#cfd4ee";
       ctx.beginPath();
@@ -133,10 +135,12 @@ function startEmbers() {
     }
     for (let i = 0; i < embers.length; i++) {
       const e = embers[i];
-      e.y -= e.speed * dt;
-      e.phase += dt * 0.7;
+      if (!held) {
+        e.y -= e.speed * dt;
+        e.phase += dt * 0.7;
+        if (e.y < -10) embers[i] = spawnEmber(false);
+      }
       const x = e.x + Math.sin(e.phase) * e.sway;
-      if (e.y < -10) embers[i] = spawnEmber(false);
       const flicker = 0.75 + 0.25 * Math.sin(e.phase * 3.1);
       ctx.globalAlpha = e.alpha * flicker;
       ctx.fillStyle = e.color;
