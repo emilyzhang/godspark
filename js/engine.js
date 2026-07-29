@@ -230,7 +230,7 @@ function finishVerb(verbId) {
     state.verbs[recipe.unlocksVerb].unlocked = true;
     emit("toast", `A new action is available: ${VERB_DEFS[recipe.unlocksVerb].name.toUpperCase()}.`);
   }
-  recordInGrimoire(recipe);
+  recordInGrimoire(recipe, slottedDefIds);
   logChronicle({ kind: "deed", title: recipe.name, body: recipe.text, gains: produced });
 
   const wasRepeating = verb.repeat;
@@ -318,13 +318,60 @@ function logChronicle(entry) {
 
 // ---- grimoire --------------------------------------------------------------
 
-function recordInGrimoire(recipe) {
-  if (!recipe.grimoire) return;
-  if (grimoire.some((e) => e.recipeId === recipe.id)) return;
-  grimoire.push({ recipeId: recipe.id, verb: recipe.verb, name: recipe.name, text: recipe.grimoire });
+function persistGrimoire() {
   try { localStorage.setItem(GRIMOIRE_KEY, JSON.stringify(grimoire)); } catch (e) { /* storage unavailable */ }
+}
+
+// The grimoire records that you know a working — and HOW you performed it
+// (the cards used), so a known working can be cast again with one gesture.
+function recordInGrimoire(recipe, cast) {
+  if (!recipe.grimoire) return;
+  const entry = grimoire.find((e) => e.recipeId === recipe.id);
+  if (entry) {
+    if (!entry.cast && cast && cast.length > 0) { entry.cast = cast; persistGrimoire(); }
+    return;
+  }
+  grimoire.push({ recipeId: recipe.id, verb: recipe.verb, name: recipe.name, text: recipe.grimoire, cast });
+  persistGrimoire();
   logChronicle({ kind: "grimoire", title: `Recorded: ${recipe.name}`, body: recipe.grimoire, gains: [] });
   emit("toast", `Recorded in your Grimoire: “${recipe.name}”.`);
+}
+
+function grimoireCastOf(recipeId) {
+  const entry = grimoire.find((e) => e.recipeId === recipeId);
+  return (entry && entry.cast && entry.cast.length > 0) ? entry.cast : null;
+}
+
+// Could this known working be begun right now from the tray?
+function canCast(verbId, recipeId) {
+  const cast = grimoireCastOf(recipeId);
+  if (!cast) return false;
+  const verb = verbState(verbId);
+  if (verb.running) return false;
+  const picked = [];
+  for (const defId of cast) {
+    const card = trayCards().find((c) => c.defId === defId && !picked.includes(c));
+    if (!card) return false;
+    picked.push(card);
+  }
+  return matchRecipe(verbId, picked)?.id === recipeId;
+}
+
+// One gesture: return whatever is slotted, gather the remembered cards, begin.
+function castWorking(verbId, recipeId) {
+  if (!canCast(verbId, recipeId)) return false;
+  const verb = verbState(verbId);
+  verb.slots.forEach((uid, i) => {
+    if (uid !== null) {
+      const card = cardByUid(uid);
+      if (card) card.heldBy = null;
+      verb.slots[i] = null;
+    }
+  });
+  attemptRestart(verbId, { recipeId, defIds: grimoireCastOf(recipeId) });
+  emit("change");
+  save();
+  return true;
 }
 
 // ---- events: the city acts on its own --------------------------------------

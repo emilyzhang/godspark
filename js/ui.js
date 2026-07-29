@@ -250,8 +250,9 @@ function slotEl(verbId, slotIndex) {
   return slot;
 }
 
-// Discovered recipes for this verb, with their ingredient aspects shown:
-// the transparency you earn in the Grimoire, laid out at the table.
+// Discovered recipes for this verb — not just reference, but a casting
+// surface: click a working the tray can afford and it gathers its
+// remembered cards and begins. The slots remain the place for experiments.
 function knownWorkingsEl(verbId) {
   const known = grimoire
     .filter((e) => e.verb === verbId)
@@ -260,16 +261,34 @@ function knownWorkingsEl(verbId) {
     .filter((r) => Object.keys(r.requires).length > 0);
   if (known.length === 0) return null;
 
-  const wrap = document.createElement("div");
+  const verb = verbState(verbId);
+  const wrap = document.createElement("details");
   wrap.className = "known-workings";
-  const label = document.createElement("h4");
+  if (known.length <= 5) wrap.open = true;
+  const label = document.createElement("summary");
   label.appendChild(iconEl("leaf"));
-  label.appendChild(document.createTextNode("workings you know"));
+  label.appendChild(document.createTextNode(`workings you know · ${known.length}`));
   wrap.appendChild(label);
 
   for (const recipe of known) {
-    const row = document.createElement("div");
-    row.className = "working-row";
+    const castable = !verb.running && canCast(verbId, recipe.id);
+    const row = document.createElement("button");
+    row.className = "working-row" + (castable ? " castable" : " dormant");
+    row.disabled = !castable;
+    if (castable) {
+      row.title = `Gather the cards and begin “${recipe.name}” (${recipe.duration}s)`;
+      row.addEventListener("click", () => {
+        if (castWorking(verbId, recipe.id)) {
+          if (state.paused && !state.ended) setPaused(false);
+          render();
+        }
+      });
+    } else {
+      row.title = grimoireCastOf(recipe.id)
+        ? "The cards for this working are not at hand"
+        : "Perform this once more, by hand, and the grimoire will learn its casting";
+    }
+    if (castable) row.appendChild(iconEl("play"));
     const name = document.createElement("span");
     name.className = "working-name";
     name.textContent = recipe.name;
