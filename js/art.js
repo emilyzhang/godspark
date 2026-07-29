@@ -81,23 +81,59 @@ const ICONS = {
   restart: '<path d="M18.5 12A6.5 6.5 0 1 1 12 5.5"/><path d="M12 2.8 15 5.5 12 8.2"/>',
 };
 
-// Hand-drawn paths rarely balance perfectly in their frame, so each icon
-// is measured once at startup and recentered on (12,12) by its bounding box.
+// Hand-drawn paths rarely balance perfectly in their frame, so each icon is
+// measured once at startup and recentered on (12,12). Measured by rendered
+// ink (getBoundingClientRect on a stroke-styled probe), not raw geometry:
+// getBBox ignores stroke thickness and round caps, whose bleed is asymmetric
+// on icons that mix stroked paths with filled shapes.
 const ICON_OFFSETS = {};
 
 function calibrateIcons() {
-  const probe = svgEl("svg", { viewBox: "0 0 24 24", width: 24, height: 24 });
+  const probe = svgEl("svg", {
+    viewBox: "0 0 24 24", width: 24, height: 24,
+    fill: "none", stroke: "#000", "stroke-width": "1.6",
+    "stroke-linecap": "round", "stroke-linejoin": "round",
+  });
   probe.style.position = "fixed";
-  probe.style.left = "-9999px";
+  probe.style.left = "0";
+  probe.style.top = "0";
+  probe.style.visibility = "hidden";
   document.body.appendChild(probe);
+
+  // Union of each shape's geometry box, run through its own transform
+  // (rotated petals and the like), padded by half the stroke width where
+  // the shape is actually stroked. Deterministic — no reliance on how a
+  // given browser computes client rects for SVG.
+  function inkCenter(g) {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const leaf of g.querySelectorAll("path, circle, ellipse, rect, line, polygon, polyline")) {
+      const b = leaf.getBBox();
+      const pad = leaf.getAttribute("stroke") === "none" ? 0 : 0.8; // stroke-width 1.6 / 2, caps included
+      const m = leaf.getCTM();
+      const corners = [
+        [b.x, b.y], [b.x + b.width, b.y],
+        [b.x, b.y + b.height], [b.x + b.width, b.y + b.height],
+      ];
+      for (const [px, py] of corners) {
+        const x = m.a * px + m.c * py + m.e;
+        const y = m.b * px + m.d * py + m.f;
+        minX = Math.min(minX, x - pad); maxX = Math.max(maxX, x + pad);
+        minY = Math.min(minY, y - pad); maxY = Math.max(maxY, y + pad);
+      }
+    }
+    return { cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 };
+  }
+
   for (const [name, markup] of Object.entries(ICONS)) {
     const g = svgEl("g", {});
     g.innerHTML = markup;
     probe.appendChild(g);
-    const box = g.getBBox();
-    const dx = 12 - (box.x + box.width / 2);
-    const dy = 12 - (box.y + box.height / 2);
-    ICON_OFFSETS[name] = `translate(${dx.toFixed(2)} ${dy.toFixed(2)})`;
+    try {
+      const { cx, cy } = inkCenter(g);
+      if (Number.isFinite(cx) && Number.isFinite(cy)) {
+        ICON_OFFSETS[name] = `translate(${(12 - cx).toFixed(2)} ${(12 - cy).toFixed(2)})`;
+      }
+    } catch (e) { /* leave this icon as drawn */ }
     probe.removeChild(g);
   }
   probe.remove();
