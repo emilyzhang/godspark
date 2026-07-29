@@ -33,8 +33,6 @@ Progress autosaves to your browser's localStorage.
 
 ## Design pillars
 
-Built as "Cultist Simulator, minus the gripes":
-
 1. **Autopause** — real-time, but the game stops the moment a result is ready. No plate-spinning.
 2. **Anti-opacity** — discoveries are recorded in-game with plain-language hints; combinations preview their recipe before you commit.
 3. **Gentle failure** — losing a run costs your position, never your knowledge. The Grimoire persists across runs.
