@@ -50,6 +50,25 @@ function aspectGems(aspects) {
   return row;
 }
 
+// Which verbs have any working that responds to this card's aspects?
+// Shown on the tooltip as "stirs at" - a where, never a how.
+let STIRS_CACHE = null;
+function stirsAt(defId) {
+  if (!STIRS_CACHE) {
+    STIRS_CACHE = {};
+    for (const [id, def] of Object.entries(CARD_DEFS)) {
+      const verbs = [];
+      for (const r of RECIPES) {
+        if (Object.keys(r.requires).length === 0) continue;
+        if (verbs.includes(r.verb)) continue;
+        if (Object.keys(r.requires).some((a) => (def.aspects[a] || 0) > 0)) verbs.push(r.verb);
+      }
+      STIRS_CACHE[id] = verbs;
+    }
+  }
+  return STIRS_CACHE[defId] || [];
+}
+
 function dominantAspectColor(def) {
   const first = Object.keys(def.aspects)[0];
   return (first && ASPECTS[first]) ? ASPECTS[first].color : "#3a3145";
@@ -103,6 +122,13 @@ function cardEl(card, { draggable = true } = {}) {
   tip.appendChild(tipName);
   tip.appendChild(tipDesc);
   tip.appendChild(aspectChips(def.aspects));
+  const stirs = stirsAt(card.defId);
+  if (stirs.length > 0) {
+    const where = document.createElement("p");
+    where.className = "card-stirs";
+    where.textContent = "stirs at: " + stirs.map((v) => VERB_DEFS[v].name).join(" · ");
+    tip.appendChild(where);
+  }
   el.appendChild(tip);
 
   if (draggable) {

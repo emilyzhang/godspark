@@ -773,6 +773,15 @@ body.dragging-card .slot.open {
 .card:hover .card-tip { display: block; }
 .card-tip strong { color: var(--gold-bright); font-size: 0.85rem; }
 .card-tip p { font-size: 0.82rem; color: var(--ink); margin: 0.3rem 0; line-height: 1.5; }
+.card-stirs {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  font-size: 0.6rem !important;
+  letter-spacing: 0.18em;
+  color: rgba(201, 168, 76, 0.75) !important;
+  font-style: normal !important;
+  margin-top: 0.4rem !important;
+}
 .aspect-chips { display: flex; flex-wrap: wrap; gap: 0.3rem; }
 .chip {
   font-family: var(--font-body);
