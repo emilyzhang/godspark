@@ -35,7 +35,9 @@
   flex: none;
 }
 button .icon { margin-right: 0.4em; vertical-align: -0.16em; }
-#btn-mute .icon { margin-right: 0; }
+/* ...but not inside a verb tile's circle, where the icon stands alone:
+   that stray margin shifts the flex-centered icon visibly off-center */
+.verb-icon .icon, #btn-mute .icon { margin-right: 0; }
 .chip .icon { width: 0.85em; height: 0.85em; margin-right: 0.28em; vertical-align: -0.1em; }
 
 body {
