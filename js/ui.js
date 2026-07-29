@@ -385,10 +385,24 @@ function renderTray() {
     section.appendChild(label);
     const row = document.createElement("div");
     row.className = "tray-group-cards";
-    for (const card of members) {
-      const el = cardEl(card);
+    // identical possessions pile into one stack; drag takes one off the top.
+    const stacks = {};
+    for (const card of members) (stacks[card.defId] ||= []).push(card);
+    for (const stack of Object.values(stacks)) {
+      // the representative is the soonest-to-fade (its timer is the honest one)
+      stack.sort((a, b) => ((a.decay ?? Infinity) - (b.decay ?? Infinity)) || a.uid - b.uid);
+      const rep = stack[0];
+      const el = cardEl(rep);
+      if (stack.length > 1) {
+        el.classList.add("stacked");
+        const badge = document.createElement("div");
+        badge.className = "card-count";
+        badge.textContent = `×${stack.length}`;
+        badge.title = `${stack.length} of these`;
+        el.appendChild(badge);
+      }
       if (verbOpen) {
-        if (cardChangesOutcome(selectedVerbId, card)) el.classList.add("useful");
+        if (cardChangesOutcome(selectedVerbId, rep)) el.classList.add("useful");
         else el.classList.add("inert");
       }
       row.appendChild(el);
@@ -445,6 +459,19 @@ const CHRONICLE_KINDS = {
 function renderChronicle() {
   const container = $("#chronicle-entries");
   container.innerHTML = "";
+  const whisperText = state.ended ? null : currentWhisper();
+  if (whisperText) {
+    const whisper = document.createElement("div");
+    whisper.className = "whisper";
+    const label = document.createElement("h3");
+    label.className = "whisper-label";
+    label.textContent = "the ember whispers";
+    const text = document.createElement("p");
+    text.textContent = whisperText;
+    whisper.appendChild(label);
+    whisper.appendChild(text);
+    container.appendChild(whisper);
+  }
   if (!state.chronicle || state.chronicle.length === 0) {
     const p = document.createElement("p");
     p.className = "chronicle-empty";
@@ -458,7 +485,7 @@ function renderChronicle() {
     const summary = document.createElement("summary");
     const title = document.createElement("span");
     title.className = "chron-title";
-    title.textContent = entry.title;
+    title.textContent = entry.title + (entry.count > 1 ? ` ×${entry.count}` : "");
     summary.appendChild(title);
     if (entry.gains && entry.gains.length > 0) {
       const gains = document.createElement("span");

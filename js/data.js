@@ -870,6 +870,36 @@ const EVENTS = [
   },
 ];
 
+// ------------------------------------------------------------
+// WHISPERS — when the player seems stuck, the ember murmurs one
+// gentle nudge (shown atop the Chronicle). First match wins; each
+// predicate receives a small context of state helpers. Nudges, not
+// recipes: they point at doors without opening them.
+// ------------------------------------------------------------
+
+const WHISPERS = [
+  { id: "w_pamphlet", text: "The pamphlet is more than it appears. Read it closely, at Study.",
+    when: (c) => c.has("pamphlet") && !c.done("study_text") },
+  { id: "w_spark", text: "You carry something no pamphlet mentions. It could be Studied. Once.",
+    when: (c) => !c.done("study_spark_first") },
+  { id: "w_refine", text: "Two small flames, studied together, make a greater.",
+    when: (c) => !c.done("rite_kindle") && !c.done("study_flame_combine") && c.aspectTotal("flame") >= 2 && c.aspectTotal("lore") >= 2 },
+  { id: "w_kindle", text: "The whisper spoke of a Kindling: flame refined, and your own insistence, offered together at Rite.",
+    when: (c) => c.unlocked("rite") && !c.done("rite_kindle") },
+  { id: "w_dread", text: "What frightens you need not be kept. Dreams have uses for it. So, later, do certain markets.",
+    when: (c) => c.count("dread") >= 2 },
+  { id: "w_garden", text: "The Ash Garden remembers more than one buried hour. Keep returning.",
+    when: (c) => c.done("dream_spark_first") && c.counter("dream_spark_again") < 4 },
+  { id: "w_widow_memory", text: "The Widow buried someone too. Show her what the garden gave you, over tea.",
+    when: (c) => c.has("widow_card") && c.aspectTotal("godmemory") >= 1 && !c.done("dream_widow_reveal") },
+  { id: "w_veil_deep", text: "What is woken must be hidden, or surrendered, or laid to rest. All three roads go through the deeper Veil.",
+    when: (c) => c.has("spark2") && c.aspectTotal("veil") < 2 },
+  { id: "w_crown", text: "A crowning wants the woken ember, the deeper Veil, and one bright impossible thing — before it fades.",
+    when: (c) => c.has("spark2") && c.aspectTotal("veil") >= 2 },
+  { id: "w_default", text: "The ember is patient. Try what has never been tried; the Grimoire will remember it for you.",
+    when: () => true },
+];
+
 // Cards the player starts a run with.
 const STARTING_CARDS = ["spark1", "vigor", "clarity", "fervor", "funds", "funds", "pamphlet"];
 

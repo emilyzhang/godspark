@@ -26,6 +26,21 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* thin brass rails instead of stock scrollbars, everywhere things scroll */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #4a3f5c transparent;
+}
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #4a3f5c, #3a3145);
+  border-radius: 999px;
+  border: 2px solid rgba(16, 12, 23, 0.9);
+}
+::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #6a5a44, #c9a84c); }
+::-webkit-scrollbar-corner { background: transparent; }
+
 /* the hand-drawn icon set: sized by context, inked by currentColor */
 .icon {
   width: 1em;
@@ -256,6 +271,30 @@ main { flex: 1; min-width: 0; }
   margin-bottom: 0.7rem;
 }
 .chronicle-empty { color: var(--ink-dim); font-style: italic; font-size: 0.85rem; }
+
+/* the ember's one gentle hint for the stuck */
+.whisper {
+  border: 1px solid rgba(201, 168, 76, 0.35);
+  border-radius: 8px;
+  background: rgba(201, 168, 76, 0.05);
+  padding: 0.55rem 0.7rem 0.6rem;
+  margin-bottom: 0.7rem;
+}
+.whisper-label {
+  font-family: var(--font-display);
+  font-weight: normal;
+  font-size: 0.6rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.25rem;
+}
+.whisper p {
+  font-size: 0.82rem;
+  font-style: italic;
+  color: var(--gold-bright);
+  line-height: 1.5;
+}
 .chron-entry {
   border-left: 2px solid var(--line);
   padding: 0.3rem 0 0.3rem 0.65rem;
@@ -651,6 +690,41 @@ body.dragging-card .slot.open {
   right: 0.45rem;
   font-size: 0.68rem;
   color: var(--ink-dim);
+}
+
+/* identical possessions pile into a stack */
+.card.stacked {
+  box-shadow:
+    2px 2px 0 -1px #262031, 2px 2px 0 0 var(--line),
+    4px 4px 0 -1px #1d1826, 4px 4px 0 0 rgba(58, 49, 69, 0.6);
+}
+.card.stacked:hover {
+  box-shadow:
+    2px 2px 0 -1px #262031, 2px 2px 0 0 var(--line),
+    4px 4px 0 -1px #1d1826, 4px 4px 0 0 rgba(58, 49, 69, 0.6),
+    0 0 10px rgba(201, 168, 76, 0.25);
+}
+/* a stacked card that matters to the open verb keeps its gold breath */
+.card.stacked.useful {
+  animation: none;
+  border-color: var(--gold);
+  box-shadow:
+    2px 2px 0 -1px #262031, 2px 2px 0 0 var(--line),
+    4px 4px 0 -1px #1d1826, 4px 4px 0 0 rgba(58, 49, 69, 0.6),
+    0 0 12px rgba(236, 205, 126, 0.45);
+}
+.card-count {
+  position: absolute;
+  top: 0.3rem;
+  left: 0.4rem;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  color: var(--gold-bright);
+  background: rgba(15, 12, 20, 0.75);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 0.38rem;
+  line-height: 1.35;
 }
 .card-decay.urgent { color: var(--ember); animation: urgent-pulse 1s infinite alternate; }
 @keyframes urgent-pulse { from { opacity: 0.6; } to { opacity: 1; } }

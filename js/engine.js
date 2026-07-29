@@ -247,6 +247,14 @@ function tryRepeat(verbId, recipe, defIds) {
 }
 
 function logChronicle(entry) {
+  // a loop's repeated deeds coalesce into one entry with a count,
+  // so the chronicle reads as history rather than a metronome
+  const head = state.chronicle[0];
+  if (head && head.kind === entry.kind && head.title === entry.title) {
+    head.count = (head.count || 1) + 1;
+    head.at = Math.round(state.elapsed);
+    return;
+  }
   state.chronicle.unshift({ ...entry, at: Math.round(state.elapsed) });
   if (state.chronicle.length > 60) state.chronicle.length = 60;
 }
@@ -319,6 +327,21 @@ function checkEvents() {
     if (state.eventsFired[ev.id] && !ev.repeatable) continue;
     if (eventConditionMet(ev)) fireEvent(ev);
   }
+}
+
+// ---- whispers: one gentle hint for the stuck --------------------------------
+
+function currentWhisper() {
+  const ctx = {
+    has: (defId) => state.cards.some((c) => c.defId === defId),
+    count: (defId) => trayCards().filter((c) => c.defId === defId).length,
+    done: (recipeId) => (state.counters[recipeId] || 0) > 0 || !!state.usedOnce[recipeId],
+    counter: (recipeId) => state.counters[recipeId] || 0,
+    unlocked: (verbId) => !!state.verbs[verbId]?.unlocked,
+    aspectTotal: (aspect) => aspectTotals(trayCards())[aspect] || 0,
+  };
+  const whisper = WHISPERS.find((w) => { try { return w.when(ctx); } catch (e) { return false; } });
+  return whisper ? whisper.text : null;
 }
 
 // ---- menace & endings ------------------------------------------------------
