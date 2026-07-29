@@ -18,6 +18,7 @@ const state = {
   usedOnce: {},     // recipeId -> true
   counters: {},     // recipeId -> completion count this run
   eventsFired: {},  // eventId -> true
+  eventTimers: {},  // periodic eventId -> game-seconds of next firing
   chronicle: [],    // newest-first log of deeds, omens and fadings (capped)
   elapsed: 0,       // unpaused seconds this run
   paused: false,
@@ -163,11 +164,28 @@ function cardChangesOutcome(verbId, card) {
 
 function startVerb(verbId) {
   const verb = verbState(verbId);
-  if (verb.running || verb.complete) return;
+  if (verb.running) return;
   const recipe = matchRecipe(verbId, slottedCards(verbId));
   if (!recipe) return;
+  verb.lastWorking = { recipeId: recipe.id, defIds: slottedCards(verbId).map((c) => c.defId) };
   verb.running = { recipeId: recipe.id, remaining: recipe.duration, total: recipe.duration };
   emit("change");
+}
+
+// Gather the same kinds of cards and begin the same working again.
+function attemptRestart(verbId, working) {
+  const verb = verbState(verbId);
+  const picked = [];
+  for (const defId of working.defIds) {
+    const card = trayCards().find((c) => c.defId === defId && !picked.includes(c));
+    if (!card) return false;
+    picked.push(card);
+  }
+  if (matchRecipe(verbId, picked)?.id !== working.recipeId) return false;
+  picked.forEach((card, i) => { verb.slots[i] = card.uid; card.heldBy = verbId; });
+  const recipe = RECIPES.find((r) => r.id === working.recipeId);
+  verb.running = { recipeId: recipe.id, remaining: recipe.duration, total: recipe.duration };
+  return true;
 }
 
 // Idle flow: an action that finishes collects itself — consumed cards go,
@@ -200,7 +218,11 @@ function finishVerb(verbId) {
   for (const card of slotted) {
     if (!consumedUids.has(card.uid)) card.heldBy = null;
   }
-  for (const defId of recipe.produces) spawnCard(defId);
+  const produced = [...recipe.produces];
+  if (recipe.randomProduces && recipe.randomProduces.length > 0) {
+    produced.push(...recipe.randomProduces[Math.floor(Math.random() * recipe.randomProduces.length)]);
+  }
+  for (const defId of produced) spawnCard(defId);
 
   if (recipe.once) state.usedOnce[recipe.id] = true;
   state.counters[recipe.id] = (state.counters[recipe.id] || 0) + 1;
@@ -209,7 +231,7 @@ function finishVerb(verbId) {
     emit("toast", `A new action is available: ${VERB_DEFS[recipe.unlocksVerb].name.toUpperCase()}.`);
   }
   recordInGrimoire(recipe);
-  logChronicle({ kind: "deed", title: recipe.name, body: recipe.text, gains: [...recipe.produces] });
+  logChronicle({ kind: "deed", title: recipe.name, body: recipe.text, gains: produced });
 
   const wasRepeating = verb.repeat;
   checkMenaceFusion();
@@ -226,24 +248,59 @@ function finishVerb(verbId) {
 // Halts gracefully (and says so) when the cards for another round are gone.
 function tryRepeat(verbId, recipe, defIds) {
   const verb = verbState(verbId);
-  const picked = [];
-  for (const defId of defIds) {
-    const card = trayCards().find((c) => c.defId === defId && !picked.includes(c));
-    if (!card) break;
-    picked.push(card);
+  if (attemptRestart(verbId, { recipeId: recipe.id, defIds })) return;
+  verb.repeat = false;
+  logChronicle({
+    kind: "halt",
+    title: `${VERB_DEFS[verbId].name} rests`,
+    body: `The cards for another round of “${recipe.name}” were not at hand.`,
+    gains: [],
+  });
+}
+
+// ---- attendants: devotees who keep a verb's vigil ---------------------------
+
+function assignAttendant(verbId) {
+  const verb = verbState(verbId);
+  if (verb.attendantUid) return false;
+  const card = trayCards().find((c) => (defOf(c).aspects.devotee || 0) > 0);
+  if (!card) return false;
+  verb.attendantUid = card.uid;
+  card.heldBy = `tend:${verbId}`;
+  logChronicle({
+    kind: "omen",
+    title: `A vigil begins`,
+    body: `${defOf(card).name} takes up the ${VERB_DEFS[verbId].name} vigil: whenever the working can be begun again, it will be.`,
+    gains: [],
+  });
+  emit("change");
+  save();
+  return true;
+}
+
+function dismissAttendant(verbId) {
+  const verb = verbState(verbId);
+  const card = cardByUid(verb.attendantUid);
+  if (card) card.heldBy = null;
+  verb.attendantUid = null;
+  emit("change");
+  save();
+}
+
+// Once a second, attendants glance at their idle verbs and, unlike the
+// repeat toggle, simply wait when the cards are missing.
+let attendantClock = 0;
+function attendAllVigils(dt) {
+  attendantClock += dt;
+  if (attendantClock < 1) return false;
+  attendantClock = 0;
+  let started = false;
+  for (const [verbId, verb] of Object.entries(state.verbs)) {
+    if (!verb.attendantUid || verb.running || !verb.lastWorking) continue;
+    if (!cardByUid(verb.attendantUid)) { verb.attendantUid = null; continue; }
+    if (attemptRestart(verbId, verb.lastWorking)) started = true;
   }
-  if (picked.length === defIds.length && matchRecipe(verbId, picked)?.id === recipe.id) {
-    picked.forEach((card, i) => { verb.slots[i] = card.uid; card.heldBy = verbId; });
-    verb.running = { recipeId: recipe.id, remaining: recipe.duration, total: recipe.duration };
-  } else {
-    verb.repeat = false;
-    logChronicle({
-      kind: "halt",
-      title: `${VERB_DEFS[verbId].name} rests`,
-      body: `The cards for another round of “${recipe.name}” were not at hand.`,
-      gains: [],
-    });
-  }
+  return started;
 }
 
 function logChronicle(entry) {
@@ -274,6 +331,15 @@ function recordInGrimoire(recipe) {
 
 function eventConditionMet(ev) {
   const w = ev.when;
+  // periodic events arm themselves on first sight, then fire on a jittered clock
+  if (w.everySeconds != null) {
+    const next = state.eventTimers[ev.id];
+    if (next == null) {
+      state.eventTimers[ev.id] = state.elapsed + w.everySeconds;
+      return false;
+    }
+    if (state.elapsed < next) return false;
+  }
   if (w.minElapsed != null && state.elapsed < w.minElapsed) return false;
   if (w.usedOnce && !state.usedOnce[w.usedOnce]) return false;
   if (w.cardExists && !state.cards.some((c) => c.defId === w.cardExists)) return false;
@@ -308,9 +374,19 @@ function fireEvent(ev) {
       removeCard(card.uid);
     }
   }
-  if (fx.spawn) for (const defId of fx.spawn) spawnCard(defId);
+  const spawned = [];
+  if (fx.spawn) for (const defId of fx.spawn) { spawnCard(defId); spawned.push(defId); }
+  if (fx.spawnOneOf && fx.spawnOneOf.length > 0) {
+    const defId = fx.spawnOneOf[Math.floor(Math.random() * fx.spawnOneOf.length)];
+    spawnCard(defId);
+    spawned.push(defId);
+  }
+  if (ev.when.everySeconds != null) {
+    // reschedule with jitter, so the city never becomes a metronome
+    state.eventTimers[ev.id] = state.elapsed + ev.when.everySeconds * (0.7 + Math.random() * 0.6);
+  }
 
-  logChronicle({ kind: fx.kind || "omen", title: fx.title || "An omen", body: fx.toast || "", gains: fx.spawn || [] });
+  logChronicle({ kind: fx.kind || "omen", title: fx.title || "An omen", body: fx.toast || "", gains: spawned });
   if (fx.toast) emit("toast", { text: fx.toast, kind: fx.kind || "omen" });
   // Only dark turns stop the world; omens drift by in the Chronicle.
   if (fx.kind === "dark") {
@@ -406,13 +482,22 @@ function tick() {
       if (card.decay <= 0) {
         removeCard(card.uid);
         structural = true;
-        const expireText = defOf(card).expireText || `${defOf(card).name} is gone.`;
-        logChronicle({ kind: "fade", title: `${defOf(card).name} fades`, body: expireText, gains: [] });
-        emit("toast", expireText);
+        const def = defOf(card);
+        const expireText = def.expireText || `${def.name} is gone.`;
+        const left = def.expireSpawn || [];
+        for (const defId of left) spawnCard(defId);
+        logChronicle({
+          kind: left.length > 0 ? "dark" : "fade",
+          title: left.length > 0 ? `${def.name} sours` : `${def.name} fades`,
+          body: expireText,
+          gains: left,
+        });
+        emit("toast", left.length > 0 ? { text: expireText, kind: "dark" } : expireText);
       }
     }
   }
 
+  if (attendAllVigils(dt)) structural = true;
   checkEvents();
   if (structural) emit("change");
   else if (timersMoved && !batchAdvancing) emit("tick");
@@ -446,6 +531,7 @@ function save() {
     usedOnce: state.usedOnce,
     counters: state.counters,
     eventsFired: state.eventsFired,
+    eventTimers: state.eventTimers,
     chronicle: state.chronicle,
     elapsed: state.elapsed,
     ended: state.ended,
@@ -470,6 +556,8 @@ function freshVerbs() {
       slots: new Array(def.slots).fill(null),
       running: null,
       repeat: false,
+      attendantUid: null,
+      lastWorking: null,
     };
   }
   return verbs;
@@ -482,6 +570,7 @@ function newRun() {
   state.usedOnce = {};
   state.counters = {};
   state.eventsFired = {};
+  state.eventTimers = {};
   state.chronicle = [];
   state.elapsed = 0;
   state.ended = null;
@@ -498,16 +587,19 @@ function migrate(snapshot) {
     if (!snapshot.verbs[id]) {
       snapshot.verbs[id] = {
         unlocked: def.unlockedAtStart, slots: new Array(def.slots).fill(null),
-        running: null, repeat: false,
+        running: null, repeat: false, attendantUid: null, lastWorking: null,
       };
     }
     const verb = snapshot.verbs[id];
     while (verb.slots.length < def.slots) verb.slots.push(null);
     verb.repeat ||= false;
+    verb.attendantUid ||= null;
+    verb.lastWorking ||= null;
   }
   snapshot.usedOnce ||= {};
   snapshot.counters ||= {};
   snapshot.eventsFired ||= {};
+  snapshot.eventTimers ||= {};
   snapshot.chronicle ||= [];
   snapshot.elapsed ||= 0;
   return snapshot;
@@ -539,6 +631,7 @@ function load() {
     state.usedOnce = snapshot.usedOnce;
     state.counters = snapshot.counters;
     state.eventsFired = snapshot.eventsFired;
+    state.eventTimers = snapshot.eventTimers;
     state.chronicle = snapshot.chronicle;
     state.elapsed = snapshot.elapsed;
     state.ended = snapshot.ended || null;

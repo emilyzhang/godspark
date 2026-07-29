@@ -459,6 +459,31 @@ body.dragging-card .slot.open {
   width: 0.8rem;
   height: 0.8rem;
 }
+.attend-mark {
+  position: absolute;
+  top: 0.55rem;
+  left: 1.4rem;
+  color: var(--gold);
+  opacity: 0.8;
+  width: 0.8rem;
+  height: 0.8rem;
+}
+.vigil-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  margin-top: 0.8rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--line);
+}
+.vigil-label {
+  font-size: 0.84rem;
+  color: var(--ink-dim);
+  font-style: italic;
+}
+.vigil-label .icon { margin-right: 0.4em; color: var(--gold); }
 .preview-label, .running-label { font-family: var(--font-body); color: var(--ink-dim); font-size: 0.9rem; }
 .preview-label { color: var(--gold); }
 .running-label { color: var(--ember); }

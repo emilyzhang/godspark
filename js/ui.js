@@ -170,6 +170,11 @@ function renderVerbRow() {
       loop.classList.add("repeat-mark");
       tile.appendChild(loop);
     }
+    if (verb.attendantUid) {
+      const vigil = iconEl("candle");
+      vigil.classList.add("attend-mark");
+      tile.appendChild(vigil);
+    }
     tile.appendChild(status);
 
     tile.addEventListener("click", () => {
@@ -323,6 +328,33 @@ function renderVerbPanel() {
   });
   footer.appendChild(repeat);
   panel.appendChild(footer);
+
+  // the vigil: a devotee who re-begins this working whenever it can be
+  const vigil = document.createElement("div");
+  vigil.className = "vigil-row";
+  if (verb.attendantUid) {
+    const attendant = cardByUid(verb.attendantUid);
+    const label = document.createElement("span");
+    label.className = "vigil-label";
+    label.appendChild(iconEl("candle"));
+    label.appendChild(document.createTextNode(
+      `Tended by ${attendant ? CARD_DEFS[attendant.defId].name : "someone"} — the working resumes whenever its cards are at hand.`
+    ));
+    const dismiss = document.createElement("button");
+    dismiss.textContent = "End the vigil";
+    dismiss.addEventListener("click", () => { dismissAttendant(verbId); render(); });
+    vigil.appendChild(label);
+    vigil.appendChild(dismiss);
+    panel.appendChild(vigil);
+  } else if (verb.lastWorking && trayCards().some((c) => (CARD_DEFS[c.defId].aspects.devotee || 0) > 0)) {
+    const offer = document.createElement("button");
+    offer.appendChild(iconEl("candle"));
+    offer.appendChild(document.createTextNode("Set a devotee to tend this"));
+    offer.title = "A devotee will re-begin the last working here whenever its cards are at hand — and wait patiently when they aren't";
+    offer.addEventListener("click", () => { assignAttendant(verbId); render(); });
+    vigil.appendChild(offer);
+    panel.appendChild(vigil);
+  }
 
   const workings = knownWorkingsEl(verbId);
   if (workings) panel.appendChild(workings);

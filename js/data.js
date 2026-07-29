@@ -34,6 +34,8 @@ const ASPECTS = {
   ledger:     { icon: "lines", label: "Ledger",     color: "#c9b458" },
   market:     { icon: "asterism", label: "Market",  color: "#6fa8a0" },
   emissary:   { icon: "halo",  label: "Emissary",   color: "#e6d9a8" },
+  craving:    { icon: "emberheart", label: "Craving", color: "#e2905a" },
+  curio:      { icon: "asterism",   label: "Curio",   color: "#9ab0c8" },
 };
 
 const PROLOGUE = {
@@ -255,6 +257,55 @@ const CARD_DEFS = {
     name: "An Emissary of the Quiet Choir", icon: "halo",
     desc: "It wears a borrowed face, neatly. When it speaks you hear a chord, and the chord means: give him back, little door, and be forgiven.",
     aspects: { emissary: 1 },
+  },
+  craving_story: {
+    name: "The Ember Craves a Story", icon: "emberheart",
+    desc: "A pang beneath the sternum. It was worshipped in stories once; it misses being told. Bring it one at the Rite, before the wanting sours.",
+    aspects: { craving: 1, c_story: 1 },
+    lifespan: 180,
+    expireText: "The wanting sours, unanswered. Something in you goes hungrier.",
+    expireSpawn: ["dread"],
+  },
+  craving_wonder: {
+    name: "The Ember Craves Brightness", icon: "emberheart",
+    desc: "It remembers being the brightest thing in every room of the world. Bring it something that shines, at the Rite, before envy curdles.",
+    aspects: { craving: 1, c_wonder: 1 },
+    lifespan: 180,
+    expireText: "The wanting sours, unanswered. Something in you goes hungrier.",
+    expireSpawn: ["dread"],
+  },
+  craving_dread: {
+    name: "The Ember Craves What Frightens You", icon: "emberheart",
+    desc: "Gods ate fear before they ate anything else. Old appetites survive the grave. Bring it yours, at the Rite — you weren't using it well anyway.",
+    aspects: { craving: 1, c_dread: 1 },
+    lifespan: 180,
+    expireText: "The wanting sours, unanswered. Something in you goes hungrier.",
+    expireSpawn: ["dread"],
+  },
+  curio_locket: {
+    name: "A Tarnished Locket", icon: "heart",
+    desc: "Shut fast. Warm, though. Lockets keep what faces forget.",
+    aspects: { curio: 1 },
+  },
+  curio_button: {
+    name: "A Sea-Glass Button", icon: "gem",
+    desc: "Smoothed by forty years of tide. It remembers a coat that drowned.",
+    aspects: { curio: 1 },
+  },
+  curio_key: {
+    name: "A Left-Handed Key", icon: "key",
+    desc: "Cut mirror-wise. Somewhere in this city there is a left-handed door.",
+    aspects: { curio: 1 },
+  },
+  curio_eye: {
+    name: "A Doll's Porcelain Eye", icon: "eye",
+    desc: "It watches nothing now, very attentively.",
+    aspects: { curio: 1 },
+  },
+  curio_die: {
+    name: "A Bone Die With Seven Faces", icon: "gem",
+    desc: "You have counted its faces four times. You get a different number each time.",
+    aspects: { curio: 1 },
   },
   floorboard_offer: {
     name: "A Murmur at the Counter", icon: "asterism",
@@ -487,6 +538,18 @@ const RECIPES = [
     grimoire: null,
   },
   {
+    id: "study_curio", verb: "study", priority: 3, duration: 12,
+    name: "Appraise the Trinket",
+    requires: { curio: 1 },
+    consumes: { curio: 1 }, produces: [],
+    randomProduces: [
+      ["funds", "funds"], ["wonder"], ["lore_veil1"], ["lore_flame1"],
+      ["pamphlet"], ["funds", "funds", "funds", "dread"],
+    ],
+    text: "Under a strong lamp and a stronger suspicion, the trinket gives up its small secret. The city does not explain itself. It only pays — in whatever it happens to be carrying.",
+    grimoire: "Curios yield what they yield: coin, lore, wonder — or a fright with interest. The seven-faced die decides.",
+  },
+  {
     id: "study_wonder", verb: "study", priority: 1, duration: 10,
     name: "Pin the Moth",
     requires: { wonder: 1 },
@@ -509,6 +572,7 @@ const RECIPES = [
     name: "Sleep",
     requires: {},
     consumes: {}, produces: [],
+    randomProduces: [[], [], [], ["wonder"]],
     text: "Grey dreams of stairs, descending. The door is there, as always. As always, you do not open it.",
     grimoire: null,
   },
@@ -649,6 +713,30 @@ const RECIPES = [
     consumes: { listener: 1 }, produces: ["devotee"],
     text: "You speak of the first fire, and what it remembers. They kneel. You did not ask them to kneel.",
     grimoire: "A Listener, shown Flame-lore at Rite, becomes a Devotee.",
+  },
+  {
+    id: "rite_feed_story", verb: "rite", priority: 5, duration: 12,
+    name: "Tell It a Story",
+    requires: { c_story: 1, story: 1 },
+    consumes: { craving: 1, story: 1 }, produces: ["lore_veil1", "wonder"],
+    text: "You tell it the story, down the stairs of yourself, the old way: aloud, alone, with the candles listening. It is quiet for a long while after. Then it dreams the story back to you — richer, and stranger, and true in a way it wasn't before.",
+    grimoire: "A craved Story, fed at Rite, is dreamed back richer: Veil-lore and Wonder.",
+  },
+  {
+    id: "rite_feed_wonder", verb: "rite", priority: 5, duration: 12,
+    name: "Bring It Something That Shines",
+    requires: { c_wonder: 1, wonder: 1 },
+    consumes: { craving: 1, wonder: 1 }, produces: ["clarity", "fervor"],
+    text: "You hold the bright impossible thing over your own sternum and let go. The warmth takes it the way a hearth takes a dry log — a flare, a settling — and for a while your mind is lit like a reading-room and your blood insists on something splendid.",
+    grimoire: "Craved brightness, fed as Wonder at Rite, returns as Clarity and Fervour.",
+  },
+  {
+    id: "rite_feed_dread", verb: "rite", priority: 5, duration: 12,
+    name: "Feed It What Frightens You",
+    requires: { c_dread: 1, dread: 1 },
+    consumes: { craving: 1, dread: 1 }, produces: ["wonder", "funds"],
+    text: "You bring your fear to the circle like a live thing in a sack, and the warmth eats it, and purrs like a hearth. You sleep better than you have in weeks. In the morning there is coin on the table you do not remember earning. You decide not to ask.",
+    grimoire: "Craved fear, fed as Dread at Rite, becomes Wonder — and unexplained coin.",
   },
   {
     id: "rite_veiling", verb: "rite", priority: 3, duration: 12,
@@ -859,6 +947,26 @@ const EVENTS = [
     },
   },
   {
+    id: "ev_craving", repeatable: true,
+    when: { everySeconds: 240, usedOnce: "study_spark_first" },
+    effects: {
+      title: "The Ember Craves",
+      spawnOneOf: ["craving_story", "craving_wonder", "craving_dread"],
+      toast: "A pang beneath the sternum: the ember misses something it cannot name. Read the wanting closely, and answer it at the Rite — before it sours.",
+      kind: "omen",
+    },
+  },
+  {
+    id: "ev_flotsam", repeatable: true,
+    when: { everySeconds: 300, minElapsed: 90 },
+    effects: {
+      title: "The City's Flotsam",
+      spawnOneOf: ["funds", "pamphlet", "wonder", "curio_locket", "curio_button", "curio_key", "curio_eye", "curio_die"],
+      toast: "Something has been left on your doorstep, or your windowsill, or tucked into your coat pocket. The city gives as it takes: sideways, and without explanation.",
+      kind: "omen",
+    },
+  },
+  {
     id: "ev_floorboards",
     when: { counterAtLeast: { recipe: "study_buy", n: 3 } },
     effects: {
@@ -878,6 +986,9 @@ const EVENTS = [
 // ------------------------------------------------------------
 
 const WHISPERS = [
+  // time-sensitive murmurs outrank leisurely ones
+  { id: "w_craving", text: "The ember's wanting has a shape. Match the shape, at Rite, before it sours.",
+    when: (c) => c.aspectTotal("craving") >= 1 },
   { id: "w_pamphlet", text: "The pamphlet is more than it appears. Read it closely, at Study.",
     when: (c) => c.has("pamphlet") && !c.done("study_text") },
   { id: "w_spark", text: "You carry something no pamphlet mentions. It could be Studied. Once.",
