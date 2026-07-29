@@ -25,15 +25,17 @@ python3 -m http.server 8000
 - Drag cards into its slots — or double-click a card to slot it.
 - With a verb open, tray cards that would **change the outcome glow gold**; irrelevant ones dim.
 - The panel tells you what recipe the combination would begin. Hit **Begin**.
-- The game **auto-pauses** whenever an action finishes. Space toggles pause.
+- Actions **collect themselves** when they finish; results and their flavor text land in **the Chronicle**, the pane at your left hand. Click an entry to read it.
+- Toggle **Repeat** on an action and it re-slots the same kinds of cards and begins again — until they run out, which the Chronicle will note.
+- Time follows the wall clock: leave the tab (or close it) and the city keeps its own hours, up to one unattended hour. Only *dark turns* stop the world; Space pauses anytime.
 - Hover a card for its description; every card wears its aspect gems on its face.
-- The **Grimoire** (📖) records every recipe you discover — permanently. It survives death. Recipes you know also appear in the verb panel as "workings you know," ingredients included.
+- The **Grimoire** records every recipe you discover — permanently. It survives death. Recipes you know also appear in the verb panel as "workings you know," ingredients included.
 
 Progress autosaves to your browser's localStorage.
 
 ## Design pillars
 
-1. **Autopause** — real-time, but the game stops the moment a result is ready. No plate-spinning.
+1. **Idle, not urgent** — actions collect themselves, loops repeat themselves, and the Chronicle remembers so you never have to react. Time stops only for dark turns.
 2. **Anti-opacity** — discoveries are recorded in-game with plain-language hints; combinations preview their recipe before you commit.
 3. **Gentle failure** — losing a run costs your position, never your knowledge. The Grimoire persists across runs.
 
