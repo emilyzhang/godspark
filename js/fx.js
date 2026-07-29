@@ -62,6 +62,15 @@ function chime() {
   } catch (e) { /* audio unavailable; play on in silence */ }
 }
 
+// A completed working in the idle flow: one soft, high tick of a bell.
+function blip() {
+  if (state.muted) return;
+  try {
+    const now = ensureAudio().currentTime + 0.02;
+    etherealTone(880, now, 0.9, 0.018);
+  } catch (e) { /* audio unavailable */ }
+}
+
 // Omens and menaces: a low tolling pair, far away.
 function darkChime() {
   if (state.muted) return;

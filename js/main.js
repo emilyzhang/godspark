@@ -7,17 +7,14 @@
   on("change", render);
   on("tick", renderTick);
   on("toast", showToast);
-  on("autopause", (verbId) => {
-    // A finished action gets the bright chime; omens and menaces toll low.
-    if (verbId) {
-      chime();
-      selectedVerbId = verbId; // jump the panel to the finished action
-    } else {
-      darkChime();
-    }
+  on("completed", () => blip()); // a soft tick: the work goes on
+  on("autopause", () => {
+    darkChime(); // only dark turns stop the world now
     render();
   });
   on("ending", (kind) => {
+    if (kind === "victory" || kind === "quenched") chime();
+    else darkChime();
     render();
     showEnding(kind);
   });
@@ -64,6 +61,15 @@
   render();
   startDreamscape();
   startEmbers();
-  setInterval(tick, TICK_MS);
+  // Time follows the wall clock, not timer firings: when the browser
+  // throttles a background tab, the game catches up rather than crawling.
+  let lastFrame = performance.now();
+  setInterval(() => {
+    const now = performance.now();
+    const delta = (now - lastFrame) / 1000;
+    lastFrame = now;
+    if (delta > 0.25) advance(delta);
+    else tick();
+  }, TICK_MS);
   setInterval(save, 5000); // autosave
 })();

@@ -740,6 +740,7 @@ const EVENTS = [
     id: "ev_watcher",
     when: { aspectAtLeast: { suspicion: 2 } },
     effects: {
+      title: "A Watcher in Grey",
       spawn: ["watcher"],
       toast: "A man in a grey hat has taken up residence at the corner of your street. He is very good at reading the same page.",
       kind: "omen",
@@ -749,6 +750,7 @@ const EVENTS = [
     id: "ev_vellum",
     when: { aspectAtLeast: { suspicion: 3 } },
     effects: {
+      title: "A Bone-White Calling-Card",
       spawn: ["inquisitor_vellum"],
       toast: "A calling-card, bone-white, its edges singed as a courtesy: INQ. T. VELLUM, OF THE ASHEN ORDER, WILL CALL AT A CONVENIENT HOUR. All hours, you understand, are convenient to him.",
       kind: "omen",
@@ -758,6 +760,7 @@ const EVENTS = [
     id: "ev_knock", repeatable: true,
     when: { aspectAtLeast: { suspicion: 4 } },
     effects: {
+      title: "The Knock at the Door",
       removeByAspect: { lore: 1 },
       clearDef: "suspicion",
       spawn: ["dread"],
@@ -769,6 +772,7 @@ const EVENTS = [
     id: "ev_widow_intro",
     when: { usedOnce: "study_spark_first", minElapsed: 90 },
     effects: {
+      title: "A Mourning-Card",
       spawn: ["widow_card"],
       toast: "A mourning-card has been slipped under your door. Ash-grey paper, violet ink, an address on Lantern Row that is only legible at night.",
       kind: "omen",
@@ -778,6 +782,7 @@ const EVENTS = [
     id: "ev_widow_kindle",
     when: { usedOnce: "rite_kindle", cardExists: "widow_card" },
     effects: {
+      title: "The Widow's Note",
       spawn: ["widow_warning", "suspicion"],
       toast: "A note in violet ink, delivered by no one: the Widow felt what you did.",
       kind: "omen",
@@ -787,6 +792,7 @@ const EVENTS = [
     id: "ev_hollow_name",
     when: { cardExists: "lore_veil2" },
     effects: {
+      title: "A Name, Underneath",
       spawn: ["hollow_invitation"],
       toast: "As you shelve the deeper lore, you notice writing on the underside of it — the way an address is on the underside of an envelope.",
       kind: "omen",
@@ -796,6 +802,7 @@ const EVENTS = [
     id: "ev_memory_funeral",
     when: { counterAtLeast: { recipe: "dream_spark_again", n: 2 } },
     effects: {
+      title: "The Garden Remembers",
       spawn: ["memory_funeral"],
       toast: "On this visit, the Ash Garden gives up a buried hour: a funeral you did not attend, and yet remember.",
       kind: "omen",
@@ -805,6 +812,7 @@ const EVENTS = [
     id: "ev_memory_choir",
     when: { counterAtLeast: { recipe: "dream_spark_again", n: 4 } },
     effects: {
+      title: "The Singers, Seen",
       spawn: ["memory_choir", "dread"],
       toast: "The garden shows you the singers. You wake with your jaw aching, as if you had been harmonizing in your sleep.",
       kind: "dark",
@@ -814,6 +822,7 @@ const EVENTS = [
     id: "ev_choir_hymn",
     when: { cardExists: "spark2" },
     effects: {
+      title: "A Hymn Above the Rooftops",
       spawn: ["choir_hymn", "dread"],
       toast: "At dusk, a hymn above the rooftops, sung by nothing visible. The Quiet Choir has noticed that something is awake.",
       kind: "dark",
@@ -823,6 +832,7 @@ const EVENTS = [
     id: "ev_promotion",
     when: { counterAtLeast: { recipe: "work_clerk", n: 3 } },
     effects: {
+      title: "The High Stool Offered",
       spawn: ["position_card"],
       toast: "The chief clerk has retired to the seaside, to die respectably. The Counting-House offers you his stool, his brass nameplate, and his key to the side door.",
       kind: "omen",
@@ -832,6 +842,7 @@ const EVENTS = [
     id: "ev_ledger",
     when: { counterAtLeast: { recipe: "work_position", n: 2 } },
     effects: {
+      title: "Ledger 41 Will Not Balance",
       spawn: ["ledger_card"],
       toast: "From the high stool, you notice what the chief clerk must have noticed before he retired so suddenly seaward: Ledger 41 will not balance. You are the only clerk who has looked twice.",
       kind: "omen",
@@ -841,6 +852,7 @@ const EVENTS = [
     id: "ev_emissary",
     when: { usedOnce: "rite_kindle", minElapsed: 240 },
     effects: {
+      title: "A Knock at the Window",
       spawn: ["emissary_card"],
       toast: "A knock. Not at the door — at the window. You live on the fourth floor. Through the glass, a borrowed face smiles with borrowed patience, and waits to be regarded.",
       kind: "dark",
@@ -850,6 +862,7 @@ const EVENTS = [
     id: "ev_floorboards",
     when: { counterAtLeast: { recipe: "study_buy", n: 3 } },
     effects: {
+      title: "A Murmur at the Counter",
       spawn: ["floorboard_offer"],
       toast: "The pamphlet-seller has begun to greet you by name. Today, he does not ring up your purchase right away.",
       kind: "omen",

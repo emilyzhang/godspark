@@ -21,16 +21,23 @@
     </div>
   </header>
 
-  <main>
-    <section id="verb-row" aria-label="Actions"></section>
+  <div id="layout">
+    <aside id="chronicle-pane" aria-label="Recent events">
+      <h2 class="chronicle-title">THE CHRONICLE</h2>
+      <div id="chronicle-entries"></div>
+    </aside>
 
-    <section id="verb-panel" class="hidden" aria-label="Selected action"></section>
+    <main>
+      <section id="verb-row" aria-label="Actions"></section>
 
-    <section id="tray-section">
-      <h2 class="tray-label">YOUR POSSESSIONS <span class="tray-hint">— drag cards onto an open action's slots, or double-click to slot them</span></h2>
-      <div id="card-tray" aria-label="Cards"></div>
-    </section>
-  </main>
+      <section id="verb-panel" class="hidden" aria-label="Selected action"></section>
+
+      <section id="tray-section">
+        <h2 class="tray-label">YOUR POSSESSIONS <span class="tray-hint">— drag cards onto an open action's slots, or double-click to slot them</span></h2>
+        <div id="card-tray" aria-label="Cards"></div>
+      </section>
+    </main>
+  </div>
 
   <aside id="grimoire" class="hidden">
     <div class="grimoire-inner">

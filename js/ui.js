@@ -140,7 +140,6 @@ function renderVerbRow() {
     tile.className = "verb-tile";
     tile.dataset.verb = verbId;
     if (verbId === selectedVerbId) tile.classList.add("selected");
-    if (verb.complete) tile.classList.add("complete");
 
     const icon = document.createElement("div");
     icon.className = "verb-icon";
@@ -163,15 +162,18 @@ function renderVerbRow() {
       fill.style.width = `${(1 - verb.running.remaining / verb.running.total) * 100}%`;
       bar.appendChild(fill);
       tile.appendChild(bar);
-    } else if (verb.complete) {
-      status.textContent = "finished — click to see";
     } else {
-      status.textContent = "idle";
+      status.textContent = verb.repeat ? "repeating" : "idle";
+    }
+    if (verb.repeat) {
+      const loop = iconEl("restart");
+      loop.classList.add("repeat-mark");
+      tile.appendChild(loop);
     }
     tile.appendChild(status);
 
     tile.addEventListener("click", () => {
-      selectedVerbId = selectedVerbId === verbId && !verb.complete ? null : verbId;
+      selectedVerbId = selectedVerbId === verbId ? null : verbId;
       render();
     });
     row.appendChild(tile);
@@ -202,7 +204,7 @@ function slotEl(verbId, slotIndex) {
   }
 
   slot.addEventListener("dragover", (e) => {
-    if (verb.running || verb.complete || uid !== null) return;
+    if (verb.running || uid !== null) return;
     e.preventDefault();
     slot.classList.add("drop-ok");
   });
@@ -272,45 +274,6 @@ function renderVerbPanel() {
   head.appendChild(desc);
   panel.appendChild(head);
 
-  if (verb.complete) {
-    const recipe = RECIPES.find((r) => r.id === verb.complete.recipeId);
-    const result = document.createElement("div");
-    result.className = "result-block";
-
-    const rname = document.createElement("h4");
-    rname.textContent = recipe.name;
-    result.appendChild(rname);
-
-    const rtext = document.createElement("p");
-    rtext.className = "flavor";
-    rtext.textContent = recipe.text;
-    result.appendChild(rtext);
-
-    if (verb.complete.producedDefIds.length > 0) {
-      const gained = document.createElement("div");
-      gained.className = "gained-row";
-      for (const defId of verb.complete.producedDefIds) {
-        const ghost = document.createElement("span");
-        ghost.className = "gained-card";
-        ghost.appendChild(iconEl(CARD_DEFS[defId].icon));
-        ghost.appendChild(document.createTextNode(CARD_DEFS[defId].name));
-        gained.appendChild(ghost);
-      }
-      result.appendChild(gained);
-    }
-
-    const collect = document.createElement("button");
-    collect.className = "primary";
-    collect.textContent = "Collect";
-    collect.addEventListener("click", () => {
-      collectVerb(verbId);
-      render();
-    });
-    result.appendChild(collect);
-    panel.appendChild(result);
-    return;
-  }
-
   const slots = document.createElement("div");
   slots.className = "slot-row";
   for (let i = 0; i < verb.slots.length; i++) slots.appendChild(slotEl(verbId, i));
@@ -347,6 +310,18 @@ function renderVerbPanel() {
     });
     footer.appendChild(start);
   }
+
+  const repeat = document.createElement("button");
+  repeat.className = "repeat-toggle" + (verb.repeat ? " on" : "");
+  repeat.appendChild(iconEl("restart"));
+  repeat.appendChild(document.createTextNode(verb.repeat ? "Repeating" : "Repeat"));
+  repeat.title = "When this working finishes, gather the same kinds of cards and begin it again";
+  repeat.addEventListener("click", () => {
+    verb.repeat = !verb.repeat;
+    save();
+    render();
+  });
+  footer.appendChild(repeat);
   panel.appendChild(footer);
 
   const workings = knownWorkingsEl(verbId);
@@ -392,9 +367,7 @@ function renderTray() {
   cards.sort((a, b) => a.defId.localeCompare(b.defId) || a.uid - b.uid);
 
   // When a verb lies open and idle, light up the cards that would matter to it.
-  const verbOpen = selectedVerbId !== null
-    && !verbState(selectedVerbId).running
-    && !verbState(selectedVerbId).complete;
+  const verbOpen = selectedVerbId !== null && !verbState(selectedVerbId).running;
 
   const grouped = {};
   for (const card of cards) {
@@ -459,6 +432,58 @@ function renderGrimoire() {
       }
       container.appendChild(div);
     }
+  }
+}
+
+// ---- the chronicle ---------------------------------------------------------
+
+const CHRONICLE_KINDS = {
+  deed: "deed", omen: "omen", dark: "dark", fade: "fade",
+  grimoire: "grimoire", halt: "fade",
+};
+
+function renderChronicle() {
+  const container = $("#chronicle-entries");
+  container.innerHTML = "";
+  if (!state.chronicle || state.chronicle.length === 0) {
+    const p = document.createElement("p");
+    p.className = "chronicle-empty";
+    p.textContent = "Nothing yet. Act, and it will be witnessed.";
+    container.appendChild(p);
+    return;
+  }
+  for (const entry of state.chronicle) {
+    const details = document.createElement("details");
+    details.className = `chron-entry chron-${CHRONICLE_KINDS[entry.kind] || "deed"}`;
+    const summary = document.createElement("summary");
+    const title = document.createElement("span");
+    title.className = "chron-title";
+    title.textContent = entry.title;
+    summary.appendChild(title);
+    if (entry.gains && entry.gains.length > 0) {
+      const gains = document.createElement("span");
+      gains.className = "chron-gains";
+      for (const defId of entry.gains) {
+        const def = CARD_DEFS[defId];
+        if (!def) continue;
+        const gain = iconEl(def.icon);
+        gain.classList.add("chron-gain");
+        gain.style.color = dominantAspectColor(def);
+        const tip = def.name;
+        gain.setAttribute("aria-label", tip);
+        gains.appendChild(gain);
+        gains.title = entry.gains.map((id) => CARD_DEFS[id]?.name).filter(Boolean).join(", ");
+      }
+      summary.appendChild(gains);
+    }
+    details.appendChild(summary);
+    if (entry.body) {
+      const body = document.createElement("p");
+      body.className = "chron-body";
+      body.textContent = entry.body;
+      details.appendChild(body);
+    }
+    container.appendChild(details);
   }
 }
 
@@ -533,6 +558,7 @@ function render() {
   renderVerbRow();
   renderVerbPanel();
   renderTray();
+  renderChronicle();
   renderGrimoire();
   renderPauseState();
 }

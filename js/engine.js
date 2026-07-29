@@ -18,6 +18,7 @@ const state = {
   usedOnce: {},     // recipeId -> true
   counters: {},     // recipeId -> completion count this run
   eventsFired: {},  // eventId -> true
+  chronicle: [],    // newest-first log of deeds, omens and fadings (capped)
   elapsed: 0,       // unpaused seconds this run
   paused: false,
   ended: null,      // null | "victory" | "despair" | "bargain"
@@ -32,7 +33,8 @@ let grimoire = []; // [{ recipeId, verb, name, text }]
 // "change" = structure changed, rebuild the view.
 // "tick" = only timers moved; update countdowns in place (rebuilding every
 // tick destroys the element under the cursor and makes hover states flicker).
-const listeners = { change: [], tick: [], toast: [], autopause: [], ending: [], newrun: [] };
+// "completed" = an action finished and self-collected (idle flow).
+const listeners = { change: [], tick: [], toast: [], autopause: [], ending: [], newrun: [], completed: [] };
 function on(event, fn) { listeners[event].push(fn); }
 function emit(event, arg) { listeners[event].forEach((fn) => fn(arg)); }
 
@@ -168,14 +170,19 @@ function startVerb(verbId) {
   emit("change");
 }
 
+// Idle flow: an action that finishes collects itself — consumed cards go,
+// returned cards come home, gains appear, and the deed enters the Chronicle.
+// Time keeps flowing; only dark turns stop the world.
 function finishVerb(verbId) {
   const verb = verbState(verbId);
   const recipe = RECIPES.find((r) => r.id === verb.running.recipeId);
   verb.running = null;
 
+  const slotted = slottedCards(verbId);
+  const slottedDefIds = slotted.map((c) => c.defId);
+
   // Decide which slotted cards are consumed. `consumes` counts CARDS
   // bearing an aspect; each card can satisfy only one consumption.
-  const slotted = slottedCards(verbId);
   const consumedUids = new Set();
   for (const [aspect, count] of Object.entries(recipe.consumes)) {
     let needed = count;
@@ -189,11 +196,11 @@ function finishVerb(verbId) {
     }
   }
   for (const uid of consumedUids) removeCard(uid);
-
-  const returnedUids = slotted.map((c) => c.uid).filter((uid) => !consumedUids.has(uid));
-
   verb.slots = verb.slots.map(() => null);
-  verb.complete = { recipeId: recipe.id, producedDefIds: [...recipe.produces], returnedUids };
+  for (const card of slotted) {
+    if (!consumedUids.has(card.uid)) card.heldBy = null;
+  }
+  for (const defId of recipe.produces) spawnCard(defId);
 
   if (recipe.once) state.usedOnce[recipe.id] = true;
   state.counters[recipe.id] = (state.counters[recipe.id] || 0) + 1;
@@ -202,31 +209,46 @@ function finishVerb(verbId) {
     emit("toast", `A new action is available: ${VERB_DEFS[recipe.unlocksVerb].name.toUpperCase()}.`);
   }
   recordInGrimoire(recipe);
+  logChronicle({ kind: "deed", title: recipe.name, body: recipe.text, gains: [...recipe.produces] });
 
-  // The heart of the anti-plate-spinning design: results are ready, so stop time.
-  state.paused = true;
-  emit("autopause", verbId);
+  const wasRepeating = verb.repeat;
+  checkMenaceFusion();
+  checkEvents();
+  checkEndings();
+  if (wasRepeating && !state.ended) tryRepeat(verbId, recipe, slottedDefIds);
+
+  emit("completed", verbId);
   emit("change");
   save();
 }
 
-function collectVerb(verbId) {
+// Repeat: gather the same kinds of cards again and begin the same working.
+// Halts gracefully (and says so) when the cards for another round are gone.
+function tryRepeat(verbId, recipe, defIds) {
   const verb = verbState(verbId);
-  if (!verb.complete) return;
-  const { producedDefIds, returnedUids } = verb.complete;
-
-  for (const uid of returnedUids) {
-    const card = cardByUid(uid);
-    if (card) card.heldBy = null;
+  const picked = [];
+  for (const defId of defIds) {
+    const card = trayCards().find((c) => c.defId === defId && !picked.includes(c));
+    if (!card) break;
+    picked.push(card);
   }
-  for (const defId of producedDefIds) spawnCard(defId);
+  if (picked.length === defIds.length && matchRecipe(verbId, picked)?.id === recipe.id) {
+    picked.forEach((card, i) => { verb.slots[i] = card.uid; card.heldBy = verbId; });
+    verb.running = { recipeId: recipe.id, remaining: recipe.duration, total: recipe.duration };
+  } else {
+    verb.repeat = false;
+    logChronicle({
+      kind: "halt",
+      title: `${VERB_DEFS[verbId].name} rests`,
+      body: `The cards for another round of “${recipe.name}” were not at hand.`,
+      gains: [],
+    });
+  }
+}
 
-  verb.complete = null;
-  checkMenaceFusion();
-  checkEvents();
-  checkEndings();
-  emit("change");
-  save();
+function logChronicle(entry) {
+  state.chronicle.unshift({ ...entry, at: Math.round(state.elapsed) });
+  if (state.chronicle.length > 60) state.chronicle.length = 60;
 }
 
 // ---- grimoire --------------------------------------------------------------
@@ -236,6 +258,7 @@ function recordInGrimoire(recipe) {
   if (grimoire.some((e) => e.recipeId === recipe.id)) return;
   grimoire.push({ recipeId: recipe.id, verb: recipe.verb, name: recipe.name, text: recipe.grimoire });
   try { localStorage.setItem(GRIMOIRE_KEY, JSON.stringify(grimoire)); } catch (e) { /* storage unavailable */ }
+  logChronicle({ kind: "grimoire", title: `Recorded: ${recipe.name}`, body: recipe.grimoire, gains: [] });
   emit("toast", `Recorded in your Grimoire: “${recipe.name}”.`);
 }
 
@@ -279,9 +302,13 @@ function fireEvent(ev) {
   }
   if (fx.spawn) for (const defId of fx.spawn) spawnCard(defId);
 
-  state.paused = true;
+  logChronicle({ kind: fx.kind || "omen", title: fx.title || "An omen", body: fx.toast || "", gains: fx.spawn || [] });
   if (fx.toast) emit("toast", { text: fx.toast, kind: fx.kind || "omen" });
-  emit("autopause", null);
+  // Only dark turns stop the world; omens drift by in the Chronicle.
+  if (fx.kind === "dark") {
+    state.paused = true;
+    emit("autopause", null);
+  }
   emit("change");
   save();
 }
@@ -301,7 +328,9 @@ function checkMenaceFusion() {
   while (dreads.length >= DREAD_FUSE_COUNT) {
     dreads.slice(0, DREAD_FUSE_COUNT).forEach((c) => removeCard(c.uid));
     spawnCard("despair");
-    emit("toast", { text: "Your dreads gather, and fuse, and go quiet. That is worse. DESPAIR settles in.", kind: "dark" });
+    const text = "Your dreads gather, and fuse, and go quiet. That is worse. DESPAIR settles in.";
+    logChronicle({ kind: "dark", title: "Despair settles in", body: text, gains: ["despair"] });
+    emit("toast", { text, kind: "dark" });
     state.paused = true;
     emit("autopause", null);
     dreads = trayCards().filter((c) => c.defId === "dread");
@@ -355,6 +384,7 @@ function tick() {
         removeCard(card.uid);
         structural = true;
         const expireText = defOf(card).expireText || `${defOf(card).name} is gone.`;
+        logChronicle({ kind: "fade", title: `${defOf(card).name} fades`, body: expireText, gains: [] });
         emit("toast", expireText);
       }
     }
@@ -362,7 +392,20 @@ function tick() {
 
   checkEvents();
   if (structural) emit("change");
-  else if (timersMoved) emit("tick");
+  else if (timersMoved && !batchAdvancing) emit("tick");
+}
+
+// Advance many steps at once: catch-up after browser throttling, or the
+// city keeping its own hours while the page was closed. Dark turns and
+// endings stop the clock mid-catch-up, exactly as they would have live.
+let batchAdvancing = false;
+function advance(seconds) {
+  const capped = Math.min(seconds, 3600); // at most an hour passes unattended
+  let steps = Math.floor(capped / (TICK_MS / 1000));
+  batchAdvancing = steps > 50;
+  while (steps-- > 0 && !state.paused && !state.ended) tick();
+  batchAdvancing = false;
+  emit("change");
 }
 
 function setPaused(value) {
@@ -380,9 +423,11 @@ function save() {
     usedOnce: state.usedOnce,
     counters: state.counters,
     eventsFired: state.eventsFired,
+    chronicle: state.chronicle,
     elapsed: state.elapsed,
     ended: state.ended,
     muted: state.muted,
+    savedAt: Date.now(),
   };
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(snapshot)); } catch (e) { /* storage unavailable */ }
 }
@@ -401,7 +446,7 @@ function freshVerbs() {
       unlocked: def.unlockedAtStart,
       slots: new Array(def.slots).fill(null),
       running: null,
-      complete: null,
+      repeat: false,
     };
   }
   return verbs;
@@ -414,6 +459,7 @@ function newRun() {
   state.usedOnce = {};
   state.counters = {};
   state.eventsFired = {};
+  state.chronicle = [];
   state.elapsed = 0;
   state.ended = null;
   state.paused = false;
@@ -423,23 +469,38 @@ function newRun() {
   emit("change");
 }
 
-// Older saves may predate verbs or slot counts added since; patch them up.
+// Older saves may predate verbs, slot counts, or the idle flow; patch them up.
 function migrate(snapshot) {
   for (const [id, def] of Object.entries(VERB_DEFS)) {
     if (!snapshot.verbs[id]) {
       snapshot.verbs[id] = {
         unlocked: def.unlockedAtStart, slots: new Array(def.slots).fill(null),
-        running: null, complete: null,
+        running: null, repeat: false,
       };
     }
     const verb = snapshot.verbs[id];
     while (verb.slots.length < def.slots) verb.slots.push(null);
+    verb.repeat ||= false;
   }
   snapshot.usedOnce ||= {};
   snapshot.counters ||= {};
   snapshot.eventsFired ||= {};
+  snapshot.chronicle ||= [];
   snapshot.elapsed ||= 0;
   return snapshot;
+}
+
+// Saves from before the idle flow may hold uncollected results; deliver them.
+function collectLegacyResults() {
+  for (const verb of Object.values(state.verbs)) {
+    if (!verb.complete) continue;
+    for (const uid of verb.complete.returnedUids || []) {
+      const card = cardByUid(uid);
+      if (card) card.heldBy = null;
+    }
+    for (const defId of verb.complete.producedDefIds || []) spawnCard(defId);
+    delete verb.complete;
+  }
 }
 
 function load() {
@@ -455,9 +516,25 @@ function load() {
     state.usedOnce = snapshot.usedOnce;
     state.counters = snapshot.counters;
     state.eventsFired = snapshot.eventsFired;
+    state.chronicle = snapshot.chronicle;
     state.elapsed = snapshot.elapsed;
     state.ended = snapshot.ended || null;
     state.muted = snapshot.muted || false;
+    collectLegacyResults();
+    // The city kept its own hours while the page was closed (idle progress) —
+    // but only if time was actually flowing when the player left.
+    const away = snapshot.savedAt ? (Date.now() - snapshot.savedAt) / 1000 : 0;
+    if (!state.ended && !snapshot.paused && away > 30) {
+      const mins = Math.round(Math.min(away, 3600) / 60);
+      logChronicle({
+        kind: "omen",
+        title: "While you were away",
+        body: `The city kept its own hours: ${mins < 1 ? "a little while" : mins + (mins === 1 ? " minute" : " minutes")} passed without you.`,
+        gains: [],
+      });
+      state.paused = false;
+      advance(away);
+    }
     state.paused = true; // load paused so returning players can look around
     if (state.ended) newRun(); // a finished run restarts fresh (grimoire kept)
   } catch (e) {

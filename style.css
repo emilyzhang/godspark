@@ -61,7 +61,7 @@ body {
   z-index: 0;
   pointer-events: none;
 }
-#topbar, main { position: relative; z-index: 1; }
+#topbar, #layout { position: relative; z-index: 1; }
 
 #aurora { overflow: hidden; }
 /* no blur filter here: the radial gradients are already soft, and large
@@ -221,7 +221,78 @@ button.danger:hover { border-color: var(--danger); color: #c98a8a; }
 
 /* ---- verb row ---- */
 
-main { max-width: 62rem; margin: 0 auto; padding: 1.5rem; }
+#layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  max-width: 82rem;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+main { flex: 1; min-width: 0; }
+
+/* ---- the chronicle: the city's recent history, at your left hand ---- */
+
+#chronicle-pane {
+  width: 17.5rem;
+  flex: none;
+  position: sticky;
+  top: 1rem;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  background: rgba(29, 23, 38, 0.75);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.9rem 1rem 1.1rem;
+}
+.chronicle-title {
+  font-family: var(--font-display);
+  font-weight: normal;
+  font-size: 0.72rem;
+  letter-spacing: 0.32em;
+  color: var(--ink-dim);
+  margin-bottom: 0.7rem;
+}
+.chronicle-empty { color: var(--ink-dim); font-style: italic; font-size: 0.85rem; }
+.chron-entry {
+  border-left: 2px solid var(--line);
+  padding: 0.3rem 0 0.3rem 0.65rem;
+  margin-bottom: 0.45rem;
+}
+.chron-entry summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.chron-entry summary::-webkit-details-marker { display: none; }
+.chron-title { font-size: 0.82rem; color: var(--ink); line-height: 1.35; }
+.chron-gains { display: inline-flex; gap: 0.25rem; flex: none; font-size: 0.78rem; }
+.chron-body {
+  font-size: 0.78rem;
+  color: var(--ink-dim);
+  line-height: 1.5;
+  margin-top: 0.3rem;
+  font-style: italic;
+}
+.chron-deed { border-left-color: var(--gold); }
+.chron-omen { border-left-color: var(--violet); }
+.chron-omen .chron-title { color: var(--violet); }
+.chron-dark { border-left-color: var(--ember); }
+.chron-dark .chron-title { color: var(--ember); }
+.chron-fade { border-left-color: var(--line); }
+.chron-fade .chron-title { color: var(--ink-dim); font-style: italic; }
+.chron-grimoire { border-left-color: #7fb7a3; }
+.chron-grimoire .chron-title { color: #7fb7a3; font-size: 0.76rem; }
+
+@media (max-width: 920px) {
+  #layout { flex-direction: column; }
+  #chronicle-pane { width: 100%; position: static; max-height: 16rem; order: 2; }
+}
 
 #verb-row {
   display: flex;
@@ -338,6 +409,17 @@ body.dragging-card .slot.open {
 .slot.filled { border-style: solid; }
 
 .panel-footer { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.repeat-toggle { margin-left: auto; }
+.repeat-toggle.on { border-color: var(--gold); color: var(--gold-bright); }
+.repeat-mark {
+  position: absolute;
+  top: 0.55rem;
+  right: 1.4rem;
+  color: var(--gold);
+  opacity: 0.8;
+  width: 0.8rem;
+  height: 0.8rem;
+}
 .preview-label, .running-label { font-family: var(--font-body); color: var(--ink-dim); font-size: 0.9rem; }
 .preview-label { color: var(--gold); }
 .running-label { color: var(--ember); }
